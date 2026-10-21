@@ -13,9 +13,12 @@
     "withGlobalTauri": true,
     "windows": [
       {
-        "title": "testpets",
-        "width": 800,
-        "height": 600
+        "label": "main",
+        "title": "Pet Todo",
+        "width": 940,
+        "height": 660,
+        "minWidth": 720,
+        "minHeight": 520
       }
     ],
     "security": {
