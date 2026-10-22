@@ -52,7 +52,7 @@ The UI sketch is `sketch.png` (purple = to-do notebook window, green = pet, blac
 
 - Looks like a **page torn from a notebook**: paper colour, ruled lines, red margin line, torn top edge.
 - **Borderless and transparent** (`decorations: false`, `transparent: true`, `shadow: false`). The top strip and header carry `data-tauri-drag-region` so it can be moved. Never put buttons inside a drag region.
-- **Fixed size 460x520, not resizable.** (`resizable: false` also stops double-click-to-maximize, which Tauri cannot otherwise disable.)
+- **Fixed size 365x520, not resizable.** (`resizable: false` also stops double-click-to-maximize, which Tauri cannot otherwise disable.)
 - `dragDropEnabled: false` on this window is required, otherwise HTML5 drag-and-drop reordering of tasks fails on Windows. Do not remove it.
 - **Ctrl+Q quits the whole app**, including pet windows. Keep the shortcut in one place.
 - **Always-on-top toggle** (saved, default off) and **hide**. Because it is borderless, a **tray icon** with Show/Hide, Always on top and Quit is required.
