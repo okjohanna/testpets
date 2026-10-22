@@ -12,6 +12,7 @@ import { loadState, saveState } from "./storage";
 import { bindEvents, render, showToast, type Page, type UiHandlers } from "./ui";
 import type { AppState, PetId } from "./types";
 import { syncPetWindow } from "./petWindow";
+import { applySizes } from "./sizes";
 import {
   applyWindowSettings,
   placeBottomRight,
@@ -47,6 +48,9 @@ function syncRoamingPet(petId: PetId | null): void {
 async function boot(): Promise<void> {
   // 1. Load the save, or start a brand new notebook.
   state = (await loadState()) ?? createInitialState();
+
+  // Window sizes live in sizes.ts; publish them to the stylesheet.
+  applySizes();
 
   // 2. Put the notebook back where the player left it. The first time round
   //    it is parked in the bottom-right corner, just above the taskbar.

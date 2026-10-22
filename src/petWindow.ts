@@ -1,4 +1,5 @@
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { PET_WINDOW_SIZE } from "./sizes";
 import type { PetId } from "./types";
 
 /**
@@ -8,9 +9,6 @@ import type { PetId } from "./types";
  * old pet window and opens a new one. The pet itself (roaming, dragging) lives
  * in pet.ts, inside that separate window.
  */
-
-/** The pet window is a small square, in logical pixels. */
-export const PET_WINDOW_SIZE = 64;
 
 /** The window that is currently roaming, if any. */
 let petWindow: WebviewWindow | null = null;

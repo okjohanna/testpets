@@ -4,6 +4,7 @@ import {
   LogicalPosition,
 } from "@tauri-apps/api/window";
 import { isPetId, PET_BY_ID } from "./pets";
+import { applySizes, PET_WINDOW_SIZE } from "./sizes";
 import { workAreaInDesktopCoords, type Box } from "./window";
 
 /**
@@ -13,9 +14,6 @@ import { workAreaInDesktopCoords, type Box } from "./window";
  * (a sprite when the pet has one, otherwise its placeholder colour), walks it
  * slowly to random spots and lets the player drag it around.
  */
-
-/** Size of the pet window in logical pixels (same value as petWindow.ts). */
-const PET_SIZE = 64;
 
 /** How often the pet takes a step. */
 const TICK_MS = 40;
@@ -31,6 +29,8 @@ const DRAG_IDLE_MS = 250;
 const RESUME_DELAY_MS = 1500;
 /** A click without any movement should not freeze the pet. */
 const CLICK_GRACE_MS = 500;
+/** Used when the window size cannot be read for some reason. */
+const PET_WINDOW_SIZE_FALLBACK = PET_WINDOW_SIZE;
 
 interface Point {
   x: number;
@@ -38,6 +38,9 @@ interface Point {
 }
 
 const win = getCurrentWindow();
+
+/** The pet window's real size in logical pixels, read once at startup. */
+let petSize = { width: 0, height: 0 };
 
 /** Where the window is now, in logical pixels. */
 let pos: Point = { x: 0, y: 0 };
@@ -64,6 +67,16 @@ async function readPosition(): Promise<Point> {
   return { x: raw.x / scale, y: raw.y / scale };
 }
 
+/** The window size in logical pixels, with a safe fallback. */
+async function readWindowSize(): Promise<{ width: number; height: number }> {
+  const scale = await win.scaleFactor();
+  const raw = await win.outerSize();
+  return {
+    width: raw.width / scale || PET_WINDOW_SIZE_FALLBACK,
+    height: raw.height / scale || PET_WINDOW_SIZE_FALLBACK,
+  };
+}
+
 /** The work area of the screen the pet is on, in logical pixels. */
 async function readBounds(): Promise<Box | null> {
   const monitor = await currentMonitor();
@@ -82,8 +95,8 @@ async function readBounds(): Promise<Box | null> {
 
 /** A random spot that keeps the whole pet inside the work area. */
 function randomTarget(area: Box): Point {
-  const maxX = Math.max(area.x, area.x + area.width - PET_SIZE);
-  const maxY = Math.max(area.y, area.y + area.height - PET_SIZE);
+  const maxX = Math.max(area.x, area.x + area.width - petSize.width);
+  const maxY = Math.max(area.y, area.y + area.height - petSize.height);
 
   return {
     x: randomBetween(area.x, maxX),
@@ -122,6 +135,7 @@ async function walkTo(target: Point): Promise<void> {
 /** The main loop: pick a spot, walk there, rest, repeat. */
 async function roam(): Promise<void> {
   pos = await readPosition();
+  petSize = await readWindowSize();
 
   for (;;) {
     // Wait out a drag, and the short pause after dropping the pet.
@@ -184,8 +198,10 @@ async function watchDragEnd(): Promise<void> {
   });
 }
 
-/** Read the pet id from the URL and paint the placeholder pet. */
+/** Read the pet id from the URL and paint the pet. */
 function start(): void {
+  applySizes();
+
   const id = new URLSearchParams(window.location.search).get("id");
   const element = document.querySelector<HTMLElement>("#pet");
 

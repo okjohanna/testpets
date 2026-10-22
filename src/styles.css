@@ -55,8 +55,15 @@ h3 {
 
 /* ---------------------------- the page ----------------------------- */
 
+/*
+ * The notebook fills its window, which is 365 x 520 and not resizable. The
+ * size is published as CSS variables by applySizes() in sizes.ts (Rust creates
+ * this window from tauri.conf.json) - the fallbacks here are only a safety net
+ * if this file is ever opened on its own.
+ */
 .notebook {
-  height: 100%;
+  width: var(--notebook-width, 365px);
+  height: var(--notebook-height, 520px);
   display: flex;
   flex-direction: column;
   background: var(--paper);
@@ -523,10 +530,13 @@ body.pet-window:active {
   cursor: grabbing;
 }
 
-/* Placeholder pet: a coloured square until the real sprites arrive. */
+/*
+ * The pet art, sized by --pet-size. That variable is written by applySizes()
+ * in sizes.ts, so it always matches the window TypeScript created.
+ */
 .pet-avatar {
-  width: 64px;
-  height: 64px;
+  width: var(--pet-size, 64px);
+  height: var(--pet-size, 64px);
   border-radius: 14px;
   border: 1px solid rgba(0, 0, 0, 0.15);
   background: var(--pet-color, #f4a261);
