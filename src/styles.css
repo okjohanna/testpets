@@ -172,6 +172,111 @@ h3 {
   margin: 4px 0 6px;
 }
 
+/* ----------------------------- tasks ------------------------------- */
+
+.task-form {
+  display: flex;
+  gap: 8px;
+  margin: 0 0 8px;
+}
+
+.task-form input {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  padding: 5px 10px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid var(--paper-shade);
+  border-radius: 8px;
+}
+
+.task-form input::placeholder {
+  color: var(--ink-soft);
+}
+
+.task-form button {
+  padding: 5px 14px;
+  font-size: 13.5px;
+}
+
+.task-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.task {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: var(--line-height);
+  border-bottom: 1px solid transparent;
+}
+
+.task.is-dragging {
+  opacity: 0.4;
+}
+
+.task.is-drop-target {
+  background: var(--accent-soft);
+  border-radius: 6px;
+}
+
+.task-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  cursor: pointer;
+}
+
+.task-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.task.is-done .task-title {
+  text-decoration: line-through;
+  color: var(--ink-soft);
+}
+
+.task-reward {
+  flex: none;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #a2761a;
+}
+
+.task-delete {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  font-size: 12px;
+  line-height: 1;
+  color: var(--ink-soft);
+  background: transparent;
+  border-color: transparent;
+}
+
+.task-delete:hover {
+  color: var(--bad);
+  background: #fbe6e4;
+}
+
+input[type="checkbox"] {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
 /* ----------------------------- footer ------------------------------ */
 
 .notebook-foot {

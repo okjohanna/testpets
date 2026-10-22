@@ -33,7 +33,19 @@
       <main class="pages">
         <section class="page page-tasks" id="page-tasks" aria-label="Tasks">
           <h2 class="page-heading">Tasks</h2>
-          <p class="empty" id="empty-tasks">Nothing written here yet.</p>
+
+          <form id="task-form" class="task-form">
+            <input
+              id="task-input"
+              placeholder="What needs doing?"
+              autocomplete="off"
+              aria-label="New task"
+            />
+            <button type="submit">Add</button>
+          </form>
+
+          <ul id="task-list" class="task-list"></ul>
+          <p class="empty" id="empty-tasks" hidden>Nothing written here yet.</p>
         </section>
 
         <section class="page page-pets" id="page-pets" aria-label="Pets" hidden>
