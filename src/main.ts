@@ -8,6 +8,8 @@ import {
   unlockPet,
   type StateChange,
 } from "./game";
+import { invoke } from "@tauri-apps/api/core";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import { loadState, saveState } from "./storage";
 import { bindEvents, render, showToast, type Page, type UiHandlers } from "./ui";
 import type { AppState, PetId } from "./types";
@@ -18,6 +20,14 @@ import {
   placeBottomRight,
   watchWindow,
 } from "./window";
+
+/** Quit the whole app, including every pet window. */
+function quitAll(): void {
+  void invoke("quit_app").catch(() => {
+    // Fallback if the Rust command isn't available for some reason.
+    void getCurrentWindow().close();
+  });
+}
 
 /**
  * The controller. It owns the current state, turns UI events into app
@@ -95,6 +105,20 @@ async function boot(): Promise<void> {
   await watchWindow((settings) => {
     state = { ...state, window: settings };
     void saveState(state);
+  });
+
+  // Ctrl+Q quits the entire app from anywhere in the notebook.
+  window.addEventListener("keydown", (event) => {
+    if (event.ctrlKey && !event.altKey && !event.shiftKey && event.key.toLowerCase() === "q") {
+      event.preventDefault();
+      quitAll();
+    }
+  });
+
+  // Closing the main window quits everything, including pet windows.
+  await getCurrentWindow().onCloseRequested((event) => {
+    event.preventDefault();
+    quitAll();
   });
 }
 
