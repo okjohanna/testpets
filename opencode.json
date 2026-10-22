@@ -1,0 +1,16 @@
+{
+  "permission": {
+    "edit": "allow",
+    "bash": {
+      "npm run build": "allow",
+      "npx tsc --noEmit": "allow",
+      "npm test": "allow",
+      "cargo check": "allow",
+      "git add *": "allow",
+      "git commit *": "allow",
+      "git status": "allow",
+      "git diff*": "allow",
+      "*": "ask"
+    }
+  }
+}
