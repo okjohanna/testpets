@@ -1,66 +1,97 @@
 # Project: Todo Pets
 
-Build an **offline desktop to-do app** with a notebook-style task list, a coin reward system, and a virtual pet that roams the screen. Start with a working prototype, using placeholder graphics.
+An **offline desktop to-do app**: a notebook-style task list, a coin reward system, and a virtual pet that roams the screen. A student team will extend it, so keep code small, readable and commented.
 
-## Tech stack (please use exactly this)
+Current progress and test checklists live in NOTES.md, not here. This file only holds rules that stay true.
 
-- Tauri 2 (Rust side kept minimal; no custom Rust unless required)
+## Tech stack (use exactly this)
+
+- Tauri 2 (Rust kept minimal, no custom Rust unless required)
 - TypeScript (vanilla, no UI framework), plain HTML/CSS, Vite
-- `tauri-plugin-store` for saving data as JSON in the OS app-data folder
-- Fully offline: no CDNs, remote fonts, analytics, or network plugins. Set a strict CSP (`default-src 'self'`).
-- Target: Windows first, but avoid Windows-only code where possible.
+- `tauri-plugin-store` for JSON persistence in the OS app-data folder
+- Vitest for unit tests of the pure logic
+- Target Windows first, but avoid Windows-only code where possible
 
-## Layout (see attached )
+## Offline rule
 
-The sketch shows a desktop (black), the to-do list window (purple), and a pet (green).
+No CDNs, remote fonts or scripts, analytics, updater, or network plugins. Keep the CSP strict (`default-src 'self'`). Fonts and images are bundled from `src/assets/`.
 
-- The UI concept sketch is in sketch.png (purple = to-do notebook window, green = pet, black = desktop).
-- The notebook window sits in the **bottom-right corner of the desktop**, just above the taskbar, like a small widget.
-- The pet is a separate small window that walks around the **whole desktop**, not just inside the notebook.
+## Environment and workflow
+
+- The shell is **Windows PowerShell**: no `&&`, no heredocs. Run **one command per call**. Create files with the write tool.
+- Verify every change with: `npx tsc --noEmit`, `npx vitest run`, `npm run build`. Run `cargo check --manifest-path src-tauri/Cargo.toml` if Rust or Cargo.toml changed.
+- Do **not** run `npm run tauri dev` (it never exits). The human runs it and checks windows by hand.
+- Do **not** run `npm install` or add dependencies without asking. The network is unreliable.
+- Never modify `AGENTS.md`, `opencode.json` or `sketch.png`.
+- Never change `productName`, `identifier`, the package name or the main window title. The team renames them manually.
+- Work in small steps, stop after each step for testing, and commit with short conventional messages (`feat(tasks): ...`).
+- Explore with read/glob/grep tools, not shell commands.
+
+## Code structure
+
+```
+src/main.ts       Controller: owns the state, handles UI events, saves
+src/game.ts       ALL rules. Pure functions, no DOM, no Tauri. Unit tested.
+src/game.test.ts  Vitest tests for game.ts
+src/pets.ts       Pet catalogue (id, name, color, price) in one data file
+src/types.ts      Shapes of everything stored. Bump STATE_VERSION if changed.
+src/storage.ts    Load/save via the store plugin (Tauri boundary for data)
+src/window.ts     Notebook window placement and position saving
+src/ui.ts         All DOM rendering and event wiring
+src/pet.ts        Entry point of the roaming pet window (pet.html)
+src/styles.css    Styling
+```
+
+Rules: `game.ts` stays pure. `ui.ts` never changes state; it reports what the player did and `main.ts` decides. New rules get a Vitest test.
+
+## Layout
+
+The UI sketch is `sketch.png` (purple = to-do notebook window, green = pet, black = desktop). The notebook sits in the **bottom-right corner** of the screen, just above the taskbar, like a small widget. The pet is a separate small window that roams the **whole desktop**.
 
 ## Window 1: Notebook (main window)
 
-- Looks like a **page torn from a notebook**: paper color, ruled lines, torn/perforated top edge.
-- **Borderless** (no OS title bar). Provide a small custom drag area (e.g. the top edge) so it can still be moved.
-- **Fixed size** 460x520 px, not resizable.
-- **Ctrl+Q quits the app** (keep it in one place so it's easy to change later).
-- Option to keep the notebook **always on top** (toggle), and an option to **hide** it. Since it's borderless, add a **system tray icon** to show it again, plus Quit.
-- Two pages, switched by a small button in a **bottom corner** of the notebook.
+- Looks like a **page torn from a notebook**: paper colour, ruled lines, red margin line, torn top edge.
+- **Borderless and transparent** (`decorations: false`, `transparent: true`, `shadow: false`). The top strip and header carry `data-tauri-drag-region` so it can be moved. Never put buttons inside a drag region.
+- **Fixed size 460x520, not resizable.** (`resizable: false` also stops double-click-to-maximize, which Tauri cannot otherwise disable.)
+- `dragDropEnabled: false` on this window is required, otherwise HTML5 drag-and-drop reordering of tasks fails on Windows. Do not remove it.
+- **Ctrl+Q quits the whole app**, including pet windows. Keep the shortcut in one place.
+- **Always-on-top toggle** (saved, default off) and **hide**. Because it is borderless, a **tray icon** with Show/Hide, Always on top and Quit is required.
+- Two pages (Tasks / Pets), switched by a small button in the bottom-right corner.
 
 ### Page 1: Tasks
 
-- Add tasks, mark them done (crossed out), delete them, and **re-order them** (drag and drop).
-- Completing a task gives the user **coins**, only once per task (un-checking and re-checking must not give coins again).
-- The **coin balance is shown** on the page.
+- Add, tick off (crossed out), delete and **drag to reorder** tasks.
+- The checkbox sits left of the red margin line. Long task text wraps onto several lines so it is fully visible.
+- Finishing a task pays **5 coins, once per task**. The `rewarded` flag stays on the task, so un-checking and re-checking never pays again. Coins are never taken back.
+- The coin balance is shown in the header.
 
 ### Page 2: Pets
 
-- Pets are shown in a **grid** on a separate notebook page.
-- **Locked pets are greyed out**. Each shows its coin price. Clicking one lets the user unlock it if they have enough coins.
-- From the **unlocked** pets, the user can **pick one** to be the active roaming pet. Picking another replaces it.
-- Pets are **placeholder colored squares** for now. Keep the pet definitions (id, name, color, price) in one data file so sprites can be swapped in later.
+- A **grid** of pets. **Locked pets are greyed out** and show their price (10 to 100 coins). Clicking a locked pet unlocks it if the player has enough coins.
+- Unlocking does **not** make the pet active. From the unlocked pets the player **picks one** as the active roaming pet; picking another replaces it.
+- The pets page only saves `activePetId`. The notebook controller spawns and closes the pet window.
 
-## Window 2: The roaming pet
+## Window 2: Roaming pet
 
-- A tiny (about 64x64) **transparent, frameless, always-on-top** window with no taskbar entry. It only covers the pet, so clicks anywhere else go to the apps below.
-- **Slowly roams** the screen on its own: it picks a random target, walks there, waits a few seconds, and repeats. Stay within screen bounds.
-- Can be **dragged** with the mouse (use `startDragging()`). After a drop, it pauses briefly and then resumes roaming. Detect the end of a drag by watching for the window to stop moving, not by `mouseup`.
-- Spawned and closed by the notebook window when the active pet changes. Respawn the saved pet on startup.
+- About 64x64, **transparent, frameless, always on top, no taskbar entry**, label `pet-<id>`. It only covers the pet, so clicks elsewhere reach the apps below. Do not use `setIgnoreCursorEvents`.
+- **Roams slowly**: random target inside the monitor work area, walk there, wait a few seconds, repeat.
+- **Draggable** with `startDragging()`. Detect the end of the drag with the window's `onMoved` event and a ~250 ms debounce, not `mouseup`. After a drop, pause about 1.5 s, then resume roaming.
+- Spawned and replaced when the active pet changes, and respawned on startup.
 
-## Data (saved locally, nothing lost on restart)
+## Data (nothing is lost on restart)
 
-Tasks (including order and done state), coin balance, unlocked pets, the active pet, and window settings (always-on-top, size, position).
+Saved in the store plugin: tasks (order, done, rewarded), coins, unlocked pets, active pet, and window settings (**position** and always-on-top; not size). Loading must tolerate old or broken saves (`normalizeState`).
 
-## Constraints and notes
+## Tauri notes
 
-- Tauri 2 requires explicit permissions. Create `src-tauri/capabilities/default.json` with the permissions needed, and make sure the pet window label pattern is included.
+- Tauri 2 needs explicit permissions in `src-tauri/capabilities/default.json`. The `windows` list must include `main` and `pet-*`. Say which permissions you add and why.
 - `vite.config.ts` must list both `index.html` and `pet.html` as inputs.
-- macOS needs `macOSPrivateApi` for transparent windows. Add it, but don't worry about macOS testing.
-- Keep code small, readable, and commented, since a student team will extend it.
-- Do not change `productName`, `identifier`, or the package name in config files. The team renames them manually.
+- `macOSPrivateApi` is enabled for transparent windows (macOS is not tested).
 
-## Working method
+## Art direction
 
-1. First, **propose a plan and file structure** and wait for my approval.
-2. Then build in small steps, in this order: (a) notebook window shell and styling, (b) tasks with persistence and coins, (c) pets page, (d) roaming pet window, (e) tray icon and always-on-top/hide.
-3. Make sure the app runs with `npm run tauri dev` after each step.
+The final aesthetic will be **retro futuristic pixel art**. Current visuals are placeholders (CSS shapes, coloured squares). Rules for art:
+- Assets live in `src/assets/` and are imported from code so Vite bundles them.
+- Pet sprites are one PNG per pet, named after the pet id (`cat.png`).
+- Show pixel art with integer scaling and `image-rendering: pixelated`.
+- Keep the notebook's look in as few CSS variables and files as possible so art can be swapped in without touching logic.
