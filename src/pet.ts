@@ -30,7 +30,7 @@ const RESUME_DELAY_MS = 1500;
 /** A click without any movement should not freeze the pet. */
 const CLICK_GRACE_MS = 500;
 /** Used when the window size cannot be read for some reason. */
-const PET_WINDOW_SIZE_FALLBACK = PET_WINDOW_SIZE;
+const PET_WINDOW_SIZE_FALLBACK = PET_WINDOW_SIZE.width;
 
 interface Point {
   x: number;

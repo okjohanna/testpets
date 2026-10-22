@@ -50,8 +50,8 @@ export async function syncPetWindow(petId: PetId | null): Promise<void> {
     // Relative to the app URL, so it works in dev and in the built app.
     url: `/pet.html?id=${petId}`,
     title: `Pet ${petId}`,
-    width: PET_WINDOW_SIZE,
-    height: PET_WINDOW_SIZE,
+    width: PET_WINDOW_SIZE.width,
+    height: PET_WINDOW_SIZE.height,
     transparent: true,
     decorations: false,
     shadow: false,

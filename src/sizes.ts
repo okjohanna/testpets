@@ -14,7 +14,7 @@
 export const NOTEBOOK_SIZE = { width: 365, height: 520 };
 
 /** The roaming pet window: a small square. */
-export const PET_WINDOW_SIZE = 64;
+export const PET_WINDOW_SIZE = { width: 64, height: 64 };
 
 /**
  * Publish the sizes to CSS as `--notebook-width`, `--notebook-height` and
@@ -24,5 +24,5 @@ export function applySizes(): void {
   const root = document.documentElement.style;
   root.setProperty("--notebook-width", `${NOTEBOOK_SIZE.width}px`);
   root.setProperty("--notebook-height", `${NOTEBOOK_SIZE.height}px`);
-  root.setProperty("--pet-size", `${PET_WINDOW_SIZE}px`);
+  root.setProperty("--pet-size", `${PET_WINDOW_SIZE.width}px`);
 }
