@@ -85,7 +85,7 @@ function petCard(state: AppState, petId: PetId): string {
       <button type="button" class="pet-card pet-card-locked" data-action="unlock" data-pet-id="${pet.id}" style="--pet-color: ${pet.color}">
         <span class="pet-swatch" aria-hidden="true"></span>
         <span class="pet-name">${escapeHtml(pet.name)}</span>
-        <span class="pet-price">${pet.price}</span>
+        <span class="pet-price"><span class="coin" aria-hidden="true"></span>${pet.price}</span>
       </button>`;
   }
 
