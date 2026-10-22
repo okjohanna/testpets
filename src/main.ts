@@ -11,6 +11,7 @@ import {
 import { loadState, saveState } from "./storage";
 import { bindEvents, render, showToast, type Page, type UiHandlers } from "./ui";
 import type { AppState, PetId } from "./types";
+import { syncPetWindow } from "./petWindow";
 import {
   applyWindowSettings,
   placeBottomRight,
@@ -34,6 +35,13 @@ function run(change: StateChange): void {
   render(state, page);
   showToast(change.event);
   void saveState(state);
+}
+
+/** Keep the roaming pet window in sync, without failing the caller. */
+function syncRoamingPet(petId: PetId | null): void {
+  void syncPetWindow(petId).catch((error) => {
+    console.error("Could not open the pet window:", error);
+  });
 }
 
 async function boot(): Promise<void> {
@@ -64,14 +72,22 @@ async function boot(): Promise<void> {
       void saveState(state);
     },
     onUnlockPet: (petId: PetId) => run(unlockPet(state, petId)),
-    onPickActivePet: (petId: PetId) => run(pickActivePet(state, petId)),
+    onPickActivePet: (petId: PetId) => {
+      const change = pickActivePet(state, petId);
+      run(change);
+      // Picking another pet replaces the one roaming the desktop.
+      syncRoamingPet(change.state.activePetId);
+    },
   };
 
   bindEvents(handlers);
   render(state, page);
   await saveState(state);
 
-  // 4. Remember where the player drags the notebook.
+  // 4. Bring back the roaming pet that was chosen last time, if any.
+  syncRoamingPet(state.activePetId);
+
+  // 5. Remember where the player drags the notebook.
   await watchWindow((settings) => {
     state = { ...state, window: settings };
     void saveState(state);

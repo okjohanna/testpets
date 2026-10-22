@@ -9,6 +9,8 @@
   "permissions": [
     "core:default",
 
+    "core:webview:allow-create-webview-window",
+
     "core:app:allow-exit",
     "core:app:allow-app-hide",
     "core:app:allow-app-show",

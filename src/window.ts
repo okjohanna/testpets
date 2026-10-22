@@ -32,7 +32,7 @@ export interface Box {
  * relative to the monitor, depending on the platform. We work out which one
  * we got by checking which reading fits inside the monitor.
  */
-function workAreaInDesktopCoords(monitor: Monitor): Box {
+export function workAreaInDesktopCoords(monitor: Monitor): Box {
   const area = monitor.workArea;
 
   const absolute: Box = {
