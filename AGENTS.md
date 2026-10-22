@@ -57,6 +57,7 @@ Tasks (including order and done state), coin balance, unlocked pets, the active 
 - `vite.config.ts` must list both `index.html` and `pet.html` as inputs.
 - macOS needs `macOSPrivateApi` for transparent windows. Add it, but don't worry about macOS testing.
 - Keep code small, readable, and commented, since a student team will extend it.
+- Do not change `productName`, `identifier`, or the package name in config files. The team renames them manually.
 
 ## Working method
 

@@ -71,6 +71,31 @@ h3 {
   line-height: 1.25;
 }
 
+/* ---------------------------- drag strip --------------------------- */
+
+/*
+ * Placeholder for the torn-edge artwork at the top of the notebook page.
+ *
+ * The real artwork will be a tileable image strip that repeats along the
+ * top edge (`repeat-x`), so the page can be resized without distorting it.
+ * Until then this is a simple zig-zag band.
+ *
+ * This strip is also the window's drag handle, so it must stay clickable:
+ * never set `pointer-events: none` here.
+ */
+.drag-strip {
+  flex: none;
+  height: 22px;
+  background: repeating-linear-gradient(
+    45deg,
+    #d8cdb4,
+    #d8cdb4 6px,
+    #e6dcc6 6px,
+    #e6dcc6 12px
+  );
+  border-bottom: 1px dashed #c3b79b;
+}
+
 /* ----------------------------- top bar ----------------------------- */
 
 .topbar {

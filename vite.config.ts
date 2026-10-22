@@ -26,4 +26,12 @@ export default defineConfig(() => ({
       ignored: ["**/src-tauri/**"],
     },
   },
+  build: {
+    rollupOptions: {
+      input: {
+        main: import.meta.dirname + "/index.html",
+        pet: import.meta.dirname + "/pet.html",
+      },
+    },
+  },
 }));

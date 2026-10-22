@@ -11,18 +11,27 @@
   },
   "app": {
     "withGlobalTauri": true,
+    "macOSPrivateApi": true,
     "windows": [
       {
         "label": "main",
         "title": "Pet Todo",
-        "width": 940,
-        "height": 660,
-        "minWidth": 720,
-        "minHeight": 520
+        "width": 360,
+        "height": 520,
+        "minWidth": 320,
+        "minHeight": 420,
+        "maxWidth": 420,
+        "maxHeight": 640,
+        "resizable": true,
+        "decorations": false,
+        "transparent": true,
+        "shadow": false,
+        "alwaysOnTop": false,
+        "dragDropEnabled": false
       }
     ],
     "security": {
-      "csp": null
+      "csp": "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'"
     }
   },
   "bundle": {

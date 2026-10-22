@@ -9,6 +9,17 @@
   </head>
 
   <body>
+    <!--
+      Drag strip.
+
+      The notebook window is frameless, so it has no title bar to grab. This
+      strip is the handle the user drags to move the window around the
+      desktop. It is also where the torn-edge artwork will live later, so
+      keep it empty for now and do not put `pointer-events: none` on it -
+      that would stop the window from being draggable.
+    -->
+    <div class="drag-strip" data-tauri-drag-region></div>
+
     <header class="topbar">
       <h1>🐾 Pet Todo</h1>
       <div class="wallet" title="Coins">
