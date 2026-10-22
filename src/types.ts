@@ -26,12 +26,14 @@ export interface Task {
   createdAt: number;
 }
 
-/** A pet in the shop. The art is a placeholder square for now. */
+/** A pet in the shop. Art is either a sprite or the placeholder colour. */
 export interface PetDefinition {
   id: PetId;
   name: string;
-  /** Placeholder colour of the pet's square. */
+  /** Fallback colour for pets that do not have a sprite yet. */
   color: string;
+  /** Bundled sprite URL. Omitted while a pet still uses the colour square. */
+  sprite?: string;
   /** How many coins it costs to unlock this pet. */
   price: number;
 }

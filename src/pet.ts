@@ -9,9 +9,9 @@ import { workAreaInDesktopCoords, type Box } from "./window";
 /**
  * The roaming pet.
  *
- * This file runs inside the small, transparent pet window. It draws the
- * placeholder pet, walks it slowly to random spots and lets the player drag it
- * around.
+ * This file runs inside the small, transparent pet window. It draws the pet
+ * (a sprite when the pet has one, otherwise its placeholder colour), walks it
+ * slowly to random spots and lets the player drag it around.
  */
 
 /** Size of the pet window in logical pixels (same value as petWindow.ts). */
@@ -199,6 +199,11 @@ function start(): void {
   if (element) {
     element.style.setProperty("--pet-color", pet.color);
     element.title = pet.name;
+
+    if (pet.sprite) {
+      element.classList.add("has-sprite");
+      element.style.setProperty("--pet-sprite", `url("${pet.sprite}")`);
+    }
   }
   document.body.dataset.petId = id;
   document.title = pet.name;

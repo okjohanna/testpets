@@ -1,16 +1,16 @@
+import dogSprite from "./assets/pets/dog.png";
 import type { PetDefinition, PetId } from "./types";
 
 /**
  * The catalogue of every pet the player can own.
  *
- * The art is a placeholder for now: each pet is a coloured square. When the
- * sprites arrive, swap the `color` for an image path and keep everything
- * else the same.
+ * A pet can have a sprite (a PNG imported so Vite bundles it) or fall back to
+ * its placeholder colour while the art is still being drawn.
  */
 
 export const PET_CATALOG: PetDefinition[] = [
   { id: "cat", name: "Cat", color: "#f4a261", price: 10 },
-  { id: "dog", name: "Dog", color: "#8ecae6", price: 20 },
+  { id: "dog", name: "Dog", color: "#8ecae6", sprite: dogSprite, price: 20 },
   { id: "rabbit", name: "Rabbit", color: "#b8c0ff", price: 30 },
   { id: "fox", name: "Fox", color: "#e07a5f", price: 45 },
   { id: "dragon", name: "Dragon", color: "#cdb4db", price: 70 },

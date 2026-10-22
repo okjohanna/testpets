@@ -1,6 +1,6 @@
 import { COINS_PER_TASK } from "./game";
 import { PET_CATALOG } from "./pets";
-import type { AppEvent, AppState, PetId, Task } from "./types";
+import type { AppEvent, AppState, PetDefinition, PetId, Task } from "./types";
 
 /**
  * Everything that touches the DOM lives here.
@@ -74,6 +74,14 @@ function taskItem(task: Task): string {
     </li>`;
 }
 
+/** A pet's artwork: its sprite, or a coloured square as a fallback. */
+function petArt(pet: PetDefinition): string {
+  if (pet.sprite) {
+    return `<img class="pet-sprite" src="${escapeHtml(pet.sprite)}" alt="" aria-hidden="true" />`;
+  }
+  return `<span class="pet-swatch" aria-hidden="true"></span>`;
+}
+
 /** One card in the pets grid. */
 function petCard(state: AppState, petId: PetId): string {
   const pet = PET_CATALOG.find((p) => p.id === petId)!;
@@ -83,7 +91,7 @@ function petCard(state: AppState, petId: PetId): string {
   if (!unlocked) {
     return `
       <button type="button" class="pet-card pet-card-locked" data-action="unlock" data-pet-id="${pet.id}" style="--pet-color: ${pet.color}">
-        <span class="pet-swatch" aria-hidden="true"></span>
+        ${petArt(pet)}
         <span class="pet-name">${escapeHtml(pet.name)}</span>
         <span class="pet-price"><span class="coin" aria-hidden="true"></span>${pet.price}</span>
       </button>`;
@@ -92,7 +100,7 @@ function petCard(state: AppState, petId: PetId): string {
   if (active) {
     return `
       <div class="pet-card pet-card-active" data-pet-id="${pet.id}" style="--pet-color: ${pet.color}">
-        <span class="pet-swatch" aria-hidden="true"></span>
+        ${petArt(pet)}
         <span class="pet-name">${escapeHtml(pet.name)}</span>
         <span class="pet-badge">Active</span>
       </div>`;
@@ -100,7 +108,7 @@ function petCard(state: AppState, petId: PetId): string {
 
   return `
     <button type="button" class="pet-card pet-card-unlocked" data-action="pick" data-pet-id="${pet.id}" style="--pet-color: ${pet.color}">
-      <span class="pet-swatch" aria-hidden="true"></span>
+      ${petArt(pet)}
       <span class="pet-name">${escapeHtml(pet.name)}</span>
       <span class="pet-pick">Pick</span>
     </button>`;
