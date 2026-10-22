@@ -1,21 +1,16 @@
 import { load, type Store } from "@tauri-apps/plugin-store";
-import type { GameState } from "./types";
+import { normalizeState, STATE_VERSION } from "./game";
+import type { AppState } from "./types";
 
 /**
- * Saving and loading game state.
+ * Saving and loading app state.
  *
- * This is the only file that talks to Tauri, which keeps the game rules in
- * game.ts completely independent of the app framework.
+ * This is one of the two files that talks to Tauri, which keeps the app
+ * rules in game.ts completely independent of the app framework.
  */
 
 const STORE_FILE = "pet-todo.json";
-const STATE_KEY = "game-state";
-
-/**
- * Bump this whenever the shape of `GameState` changes. `loadState` then knows
- * the save on disk is from an older version and can migrate or discard it.
- */
-export const STATE_VERSION = 1;
+const STATE_KEY = "app-state";
 
 let store: Store | null = null;
 
@@ -27,28 +22,30 @@ async function getStore(): Promise<Store> {
   return store;
 }
 
-/** Read the saved game, or null if this is a fresh install. */
-export async function loadState(): Promise<GameState | null> {
+/** Read the saved state, or null if this is a fresh install. */
+export async function loadState(): Promise<AppState | null> {
   const s = await getStore();
-  const saved = await s.get<GameState>(STATE_KEY);
+  const raw = await s.get<unknown>(STATE_KEY);
 
-  if (!saved) {
+  if (!raw) {
     return null;
   }
 
-  if (saved.version !== STATE_VERSION) {
-    // TODO: migrate old saves here instead of throwing them away.
+  const version = (raw as { version?: number }).version;
+  if (version !== STATE_VERSION) {
+    // An older save (for example the first demo version) cannot be read, so
+    // we start fresh instead of crashing.
     console.warn(
-      `Saved game is version ${saved.version}, expected ${STATE_VERSION}. Starting fresh.`,
+      `Saved data is version ${String(version)}, expected ${STATE_VERSION}. Starting fresh.`,
     );
     return null;
   }
 
-  return saved;
+  return normalizeState(raw);
 }
 
-/** Write the game to disk. */
-export async function saveState(state: GameState): Promise<void> {
+/** Write the state to disk. */
+export async function saveState(state: AppState): Promise<void> {
   const s = await getStore();
   await s.set(STATE_KEY, state);
   await s.save();

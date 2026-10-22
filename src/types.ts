@@ -1,62 +1,67 @@
 /**
- * The shapes of everything the game stores.
+ * The shapes of everything the app stores.
  *
  * These types describe data that gets written to disk, so treat them carefully:
- * if you change one, bump `STATE_VERSION` in storage.ts so old saves can be
+ * if you change one, bump `STATE_VERSION` in game.ts so old saves can be
  * migrated instead of silently breaking.
  */
 
-/** Every pet species the player can own. */
-export type Species = "cat" | "dog" | "rabbit" | "dragon";
+/** Every pet the player can own. */
+export type PetId = "cat" | "dog" | "rabbit" | "fox" | "dragon" | "owl";
 
-/** How hard a task is, which decides how much XP it is worth. */
-export type Difficulty = "easy" | "normal" | "hard";
-
-export interface Pet {
-  id: string;
-  name: string;
-  species: Species;
-  /** Pet levels start at 1. */
-  level: number;
-  /** XP earned towards the *next* level. */
-  xp: number;
-  /** 0-100. 100 means completely full. */
-  hunger: number;
-  /** 0-100. */
-  happiness: number;
-  /** 0-100. */
-  energy: number;
-  /**
-   * Epoch milliseconds of the last time we recalculated this pet's stats.
-   * Stats decay based on how much time has passed since this moment, which is
-   * what lets pets keep changing while the app is closed.
-   */
-  lastTick: number;
-}
-
-export interface Todo {
+/** One line on the to-do page. */
+export interface Task {
   id: string;
   title: string;
+  /** Done tasks are crossed out. */
   done: boolean;
-  difficulty: Difficulty;
+  /**
+   * True once the coin reward for this task has been paid out.
+   *
+   * Un-checking and re-checking a task must not pay out a second time, so
+   * this flag stays true for the rest of the task's life.
+   */
+  rewarded: boolean;
+  /** Epoch milliseconds, for sorting and for the "newest first" default. */
   createdAt: number;
-  /** Epoch milliseconds of completion, or null while the task is open. */
-  completedAt: number | null;
 }
 
-export interface GameState {
-  /** Shape version, see STATE_VERSION in storage.ts. */
+/** A pet in the shop. The art is a placeholder square for now. */
+export interface PetDefinition {
+  id: PetId;
+  name: string;
+  /** Placeholder colour of the pet's square. */
+  color: string;
+  /** How many coins it costs to unlock this pet. */
+  price: number;
+}
+
+/** Where the notebook window was left, so it comes back in the same place. */
+export interface WindowSettings {
+  width: number;
+  height: number;
+  /** Null until the user has moved or resized the window. */
+  x: number | null;
+  y: number | null;
+}
+
+/** Everything the app keeps between restarts. */
+export interface AppState {
+  /** Shape version, see STATE_VERSION in game.ts. */
   version: number;
-  /** Currency used to feed and play with pets. */
+  /** The wallet. Spent on unlocking pets. */
   coins: number;
-  /** The pet that earns XP from completed tasks. */
-  activePetId: string | null;
-  pets: Pet[];
-  todos: Todo[];
+  /** Tasks in the order the player arranged them. */
+  tasks: Task[];
+  /** The pets the player has already paid for. */
+  unlockedPets: PetId[];
+  /** The pet that roams the desktop. Null until a pet is picked. */
+  activePetId: PetId | null;
+  window: WindowSettings;
 }
 
 /** A short message shown to the player after an action. */
-export interface GameEvent {
+export interface AppEvent {
   message: string;
   tone: "good" | "bad" | "info";
 }

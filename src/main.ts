@@ -1,94 +1,39 @@
-import { invoke } from "@tauri-apps/api/core";
-import {
-  addTodo,
-  completeTodo,
-  createInitialState,
-  feedPet,
-  petPet,
-  playWithPet,
-  reopenTodo,
-  removeTodo,
-  selectPet,
-  tickAll,
-  type StateChange,
-} from "./game";
+import { createInitialState } from "./game";
 import { loadState, saveState } from "./storage";
-import { bindEvents, render, showToast, type UiHandlers } from "./ui";
-import type { GameState } from "./types";
+import { bindEvents, render, type Page, type UiHandlers } from "./ui";
+import type { AppState } from "./types";
+import { placeBottomRight } from "./window";
 
 /**
- * The controller. It owns the current state, turns UI events into game
+ * The controller. It owns the current state, turns UI events into app
  * actions, and saves the result.
  */
 
 /** The single source of truth for the running app. */
-let state: GameState;
+let state: AppState;
 
-/** Apply a change, redraw, and persist. */
-function run(change: StateChange): void {
-  state = change.state;
-  render(state);
-  showToast(change.event);
-  void saveState(state);
-}
-
-function petName(petId: string): string {
-  return state.pets.find((p) => p.id === petId)?.name ?? "Your pet";
-}
-
-/**
- * Petting is the one action that asks the Rust side for a reaction, so the
- * pet's voice lives in Rust instead of in the frontend.
- */
-async function petInteraction(petId: string): Promise<void> {
-  const change = petPet(state, petId);
-  state = change.state;
-  render(state);
-  void saveState(state);
-
-  const phrase = await invoke<string>("pet_says", { name: petName(petId) });
-  showToast({ tone: "good", message: phrase });
-}
+/** Which page of the notebook is open. */
+let page: Page = "tasks";
 
 async function boot(): Promise<void> {
-  // 1. Load the save, or start a brand new game.
-  const saved = await loadState();
-  state = saved ?? createInitialState();
+  // 1. Load the save, or start a brand new notebook.
+  state = (await loadState()) ?? createInitialState();
 
-  // 2. Apply any stat decay that happened while the app was closed.
-  state = tickAll(state);
+  // 2. The notebook is a small widget: park it in the bottom-right corner of
+  //    the screen, just above the taskbar.
+  await placeBottomRight();
 
   // 3. Wire up the UI.
   const handlers: UiHandlers = {
-    onAddTodo: (title, difficulty) => run(addTodo(state, title, difficulty)),
-    onToggleTodo: (todoId, done) =>
-      run(done ? completeTodo(state, todoId) : reopenTodo(state, todoId)),
-    onDeleteTodo: (todoId) => run(removeTodo(state, todoId)),
-    onSelectPet: (petId) => run(selectPet(state, petId)),
-    onPetAction: (petId, action) => {
-      if (action === "pet") {
-        void petInteraction(petId);
-        return;
-      }
-      if (action === "feed") {
-        run(feedPet(state, petId));
-        return;
-      }
-      run(playWithPet(state, petId));
+    onPageChange: (next) => {
+      page = next;
+      render(state, page);
     },
   };
 
   bindEvents(handlers);
-  render(state);
+  render(state, page);
   await saveState(state);
-
-  // 4. Keep the meters moving while the app is open. The decay maths also
-  //    runs on load, so this is only for making the numbers tick over live.
-  window.setInterval(() => {
-    state = tickAll(state);
-    render(state);
-    void saveState(state);
-  }, 30_000);
 }
 
 void boot().catch((error: unknown) => {

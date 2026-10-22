@@ -1,47 +1,27 @@
 /* ------------------------------------------------------------------ *
  * Pet Todo - stylesheet
  *
- * Colours live in custom properties at the top so the whole app can be
- * re-themed from one place. The dark theme just overrides those values.
+ * The app is a page torn out of a notebook, so the styling is paper:
+ * warm off-white, blue ruled lines, a red margin line and a torn top
+ * edge. The window itself is transparent, so the paper is drawn by
+ * `.notebook` and everything around it shows the desktop.
  * ------------------------------------------------------------------ */
 
 :root {
-  --bg: #f4f6fb;
-  --surface: #ffffff;
-  --surface-2: #eef1f8;
-  --text: #191d2b;
-  --muted: #6a7080;
-  --border: #e2e6f0;
+  --paper: #fdf7e6;
+  --paper-shade: #f4ead2;
+  --ink: #33405c;
+  --ink-soft: #77839c;
+  --rule: #cfe0f5;
+  --margin-line: #e8a3a3;
   --accent: #5b7cfa;
   --accent-soft: #e7ecff;
-  --good: #23a06a;
+  --good: #1f9d68;
   --bad: #d9483f;
-  --hunger: #ef9b45;
-  --happiness: #e35d8c;
-  --energy: #35bdb4;
-  --xp: #7c6cf0;
-  --radius: 14px;
-  --shadow: 0 1px 2px rgba(20, 24, 40, 0.05), 0 10px 28px rgba(20, 24, 40, 0.07);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #14161f;
-    --surface: #1c1f2b;
-    --surface-2: #252938;
-    --text: #eef0f6;
-    --muted: #9aa1b4;
-    --border: #303545;
-    --accent: #7b93ff;
-    --accent-soft: #262d4d;
-    --good: #48c98c;
-    --bad: #f0736a;
-    --hunger: #f0ad5e;
-    --happiness: #f07fa5;
-    --energy: #4bd0c7;
-    --xp: #9b8dff;
-    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 12px 32px rgba(0, 0, 0, 0.35);
-  }
+  --coin: #f0b429;
+  --radius: 10px;
+  --shadow: 0 10px 30px rgba(20, 24, 40, 0.35);
+  --line-height: 28px;
 }
 
 * {
@@ -55,13 +35,12 @@ body {
 
 body {
   margin: 0;
+  overflow: hidden;
+  background: transparent;
   font-family: "Segoe UI", Inter, system-ui, -apple-system, sans-serif;
   font-size: 15px;
-  line-height: 1.5;
-  color: var(--text);
-  background: var(--bg);
-  display: flex;
-  flex-direction: column;
+  line-height: var(--line-height);
+  color: var(--ink);
 }
 
 h1,
@@ -71,235 +50,160 @@ h3 {
   line-height: 1.25;
 }
 
-/* ---------------------------- drag strip --------------------------- */
+/* ---------------------------- the page ----------------------------- */
 
-/*
- * Placeholder for the torn-edge artwork at the top of the notebook page.
- *
- * The real artwork will be a tileable image strip that repeats along the
- * top edge (`repeat-x`), so the page can be resized without distorting it.
- * Until then this is a simple zig-zag band.
- *
- * This strip is also the window's drag handle, so it must stay clickable:
- * never set `pointer-events: none` here.
- */
-.drag-strip {
-  flex: none;
-  height: 22px;
-  background: repeating-linear-gradient(
-    45deg,
-    #d8cdb4,
-    #d8cdb4 6px,
-    #e6dcc6 6px,
-    #e6dcc6 12px
-  );
-  border-bottom: 1px dashed #c3b79b;
+.notebook {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--paper);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
 }
 
-/* ----------------------------- top bar ----------------------------- */
+/*
+ * The torn top edge.
+ *
+ * A row of half circles is punched out of the top of the page, so the
+ * desktop shows through the holes like a page ripped out of a spiral
+ * notebook. This strip is also the window's drag handle, so it must stay
+ * clickable - never set `pointer-events: none` here.
+ */
+.page-edge {
+  flex: none;
+  height: 14px;
+  background: var(--paper);
+  -webkit-mask-image: radial-gradient(
+    circle 6px at 7px 0,
+    transparent 0 5.4px,
+    #000 5.8px
+  );
+  mask-image: radial-gradient(circle 6px at 7px 0, transparent 0 5.4px, #000 5.8px);
+  -webkit-mask-size: 14px 14px;
+  mask-size: 14px 14px;
+  -webkit-mask-repeat: repeat-x;
+  mask-repeat: repeat-x;
+}
 
-.topbar {
+/* --------------------------- the heading --------------------------- */
+
+.notebook-head {
+  flex: none;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  padding: 14px 24px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
+  gap: 12px;
+  padding: 6px 16px 10px;
+  border-bottom: 1px solid var(--paper-shade);
 }
 
-.topbar h1 {
-  font-size: 20px;
-  letter-spacing: -0.01em;
+.notebook-head h1 {
+  font-size: 19px;
+  letter-spacing: 0.01em;
 }
 
 .wallet {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
+  gap: 7px;
+  padding: 3px 12px 3px 8px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-  background: var(--surface-2);
+  color: #7a5a12;
+  background: #fdf0cf;
+  border: 1px solid #f0d79b;
   border-radius: 999px;
 }
 
-.coin-icon {
-  font-size: 16px;
+/* Placeholder coin: a plain circle until we draw a real one. */
+.coin {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ffe08a, var(--coin));
+  border: 1px solid #d79f1c;
 }
 
-/* ----------------------------- layout ----------------------------- */
+/* ----------------------------- pages ------------------------------- */
 
-.layout {
+.pages {
+  position: relative;
   flex: 1;
-  display: grid;
-  grid-template-columns: minmax(300px, 380px) 1fr;
-  gap: 20px;
-  padding: 20px 24px 24px;
-  align-items: start;
-  overflow: auto;
+  min-height: 0;
 }
 
-@media (max-width: 720px) {
-  .layout {
-    grid-template-columns: 1fr;
-  }
+.page {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 4px 16px 16px 46px;
+  /* The ruled lines of the paper. */
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0 calc(var(--line-height) - 1px),
+    var(--rule) calc(var(--line-height) - 1px) var(--line-height)
+  );
 }
 
-.panel {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: 18px;
+.page[hidden] {
+  display: none;
 }
 
-.panel h2 {
-  font-size: 15px;
+/* The red margin line down the left of the page. */
+.page::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 34px;
+  width: 1px;
+  background: var(--margin-line);
+}
+
+.page-heading {
+  position: relative;
+  font-size: 12px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--muted);
-  margin-bottom: 14px;
+  letter-spacing: 0.12em;
+  color: var(--ink-soft);
+  margin: 4px 0 6px;
 }
 
-/* ------------------------------ pets ------------------------------ */
+/* ----------------------------- footer ------------------------------ */
 
-.pet-list {
+.notebook-foot {
+  flex: none;
   display: flex;
-  flex-direction: column;
-  gap: 14px;
+  justify-content: flex-end;
+  padding: 4px 10px 10px;
 }
 
-.pet-card {
-  --accent: var(--xp);
-  padding: 14px;
-  border: 1px solid var(--border);
-  border-left: 4px solid var(--accent);
-  border-radius: 12px;
-  background: var(--surface-2);
-}
-
-.pet-card.is-active {
-  box-shadow: 0 0 0 1px var(--accent);
-}
-
-.pet-head {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 14px;
-}
-
-.pet-avatar {
-  font-size: 30px;
-  line-height: 1;
-  width: 48px;
-  height: 48px;
-  display: grid;
-  place-items: center;
-  background: var(--surface);
-  border-radius: 12px;
-}
-
-.pet-identity {
-  flex: 1;
-  min-width: 0;
-}
-
-.pet-identity h3 {
-  font-size: 16px;
-}
-
-.pet-sub {
-  margin: 2px 0 0;
-  font-size: 12.5px;
-  color: var(--muted);
-}
-
-.badge {
-  font-size: 11px;
+.page-toggle {
+  font: inherit;
+  font-size: 12px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding: 4px 9px;
+  cursor: pointer;
+  padding: 4px 14px;
+  color: var(--ink);
+  background: var(--paper-shade);
+  border: 1px solid #e3d5b6;
   border-radius: 999px;
-  color: var(--accent);
-  background: var(--accent-soft);
 }
 
-/* ----------------------------- meters ----------------------------- */
-
-.stat-row {
-  display: grid;
-  grid-template-columns: 52px 1fr 34px;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 7px;
+.page-toggle:hover {
+  background: #efe3c6;
 }
 
-.stat-name {
-  font-size: 12px;
-  color: var(--muted);
-}
-
-.stat-num {
-  font-size: 12px;
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-  color: var(--muted);
-}
-
-.meter {
-  height: 8px;
-  border-radius: 999px;
-  background: var(--surface);
-  overflow: hidden;
-}
-
-.meter-fill {
-  height: 100%;
-  border-radius: 999px;
-  transition: width 0.35s ease;
-}
-
-.meter-fill.hunger {
-  background: var(--hunger);
-}
-.meter-fill.happiness {
-  background: var(--happiness);
-}
-.meter-fill.energy {
-  background: var(--energy);
-}
-.meter-fill.xp {
-  background: var(--xp);
-}
-
-.xp-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 12px 0 14px;
-}
-
-.xp-row .meter {
-  flex: 1;
-}
-
-.xp-label {
-  font-size: 11.5px;
-  color: var(--muted);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-
-/* ---------------------------- buttons ----------------------------- */
+/* ---------------------------- buttons ------------------------------ */
 
 button {
   font: inherit;
-  font-weight: 550;
+  font-weight: 600;
   cursor: pointer;
-  padding: 8px 14px;
+  padding: 7px 14px;
   color: #fff;
   background: var(--accent);
   border: 1px solid transparent;
@@ -322,186 +226,37 @@ select:focus-visible {
   outline-offset: 2px;
 }
 
-.pet-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.pet-actions button {
-  flex: 1;
-  padding: 7px 8px;
-  font-size: 13px;
-  background: var(--surface);
-  color: var(--text);
-  border-color: var(--border);
-}
-
-.pet-actions button:hover {
-  background: var(--accent-soft);
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.ghost {
-  background: transparent;
-  color: var(--accent);
-  border-color: var(--border);
-  font-size: 12px;
-  padding: 5px 10px;
-}
-
-.ghost:hover {
-  background: var(--accent-soft);
-}
-
-/* ----------------------------- tasks ------------------------------ */
-
-.tasks-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.todo-summary {
-  font-size: 12.5px;
-  color: var(--muted);
-}
-
-.todo-form {
-  display: grid;
-  grid-template-columns: 1fr auto auto;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-
-input,
-select {
-  font: inherit;
-  padding: 9px 12px;
-  color: var(--text);
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: 9px;
-}
-
-input::placeholder {
-  color: var(--muted);
-}
-
-.todo-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.todo {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-}
-
-.todo-main {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-}
-
-.todo-title {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.todo.is-done .todo-title {
-  text-decoration: line-through;
-  color: var(--muted);
-}
-
-.todo-tag {
-  flex: none;
-  font-size: 11px;
-  font-weight: 600;
-  padding: 3px 8px;
-  border-radius: 999px;
-  background: var(--surface);
-  color: var(--muted);
-  border: 1px solid var(--border);
-}
-
-.todo-tag.easy {
-  color: var(--good);
-}
-.todo-tag.hard {
-  color: var(--bad);
-}
-
-input[type="checkbox"] {
-  width: 17px;
-  height: 17px;
-  accent-color: var(--accent);
-  cursor: pointer;
-  flex: none;
-}
-
-.todo-delete {
-  flex: none;
-  padding: 4px 9px;
-  font-size: 13px;
-  background: transparent;
-  color: var(--muted);
-  border-color: transparent;
-}
-
-.todo-delete:hover {
-  color: var(--bad);
-  background: var(--surface);
-}
+/* ----------------------------- empty ------------------------------- */
 
 .empty {
-  margin: 8px 0 0;
-  padding: 22px 12px;
-  text-align: center;
-  color: var(--muted);
+  margin: 10px 0 0;
+  color: var(--ink-soft);
   font-size: 13.5px;
-  border: 1px dashed var(--border);
-  border-radius: 10px;
+  font-style: italic;
 }
 
 .empty[hidden] {
   display: none;
 }
 
-/* ----------------------------- toast ------------------------------ */
+/* ----------------------------- toast ------------------------------- */
 
 .toast {
   position: fixed;
   left: 50%;
-  bottom: 26px;
+  bottom: 44px;
   transform: translate(-50%, 20px);
-  padding: 11px 20px;
+  padding: 10px 18px;
   border-radius: 999px;
   font-size: 13.5px;
-  font-weight: 550;
+  font-weight: 600;
   color: #fff;
-  background: var(--text);
+  background: var(--ink);
   box-shadow: var(--shadow);
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.22s ease, transform 0.22s ease;
-  max-width: 90vw;
+  max-width: 92%;
   text-align: center;
 }
 
@@ -513,18 +268,20 @@ input[type="checkbox"] {
 .toast.good {
   background: var(--good);
 }
+
 .toast.bad {
   background: var(--bad);
 }
+
 .toast.info {
   background: var(--accent);
 }
 
-/* ---------------------------- errors ------------------------------ */
+/* ---------------------------- errors ------------------------------- */
 
 .startup-error {
   margin: 0;
-  padding: 12px 24px;
+  padding: 12px 16px;
   background: var(--bad);
   color: #fff;
   font-size: 13.5px;

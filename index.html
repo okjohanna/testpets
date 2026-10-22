@@ -10,57 +10,42 @@
 
   <body>
     <!--
-      Drag strip.
+      The notebook.
 
-      The notebook window is frameless, so it has no title bar to grab. This
-      strip is the handle the user drags to move the window around the
-      desktop. It is also where the torn-edge artwork will live later, so
-      keep it empty for now and do not put `pointer-events: none` on it -
-      that would stop the window from being draggable.
+      The window is frameless and transparent, so the page is drawn with CSS:
+      paper colour, ruled lines and a torn top edge.
+
+      `.page-edge` and `.notebook-head` are drag regions - they are the only
+      places the player can grab the window to move it. Never put a button
+      inside them, or the button will drag the window instead of clicking.
     -->
-    <div class="drag-strip" data-tauri-drag-region></div>
+    <div class="notebook">
+      <div class="page-edge" data-tauri-drag-region></div>
 
-    <header class="topbar">
-      <h1>🐾 Pet Todo</h1>
-      <div class="wallet" title="Coins">
-        <span class="coin-icon">🪙</span>
-        <span id="coins">0</span>
-      </div>
-    </header>
-
-    <main class="layout">
-      <section class="panel pets" aria-labelledby="pets-heading">
-        <h2 id="pets-heading">Your pets</h2>
-        <div id="pet-list" class="pet-list"></div>
-      </section>
-
-      <section class="panel tasks" aria-labelledby="tasks-heading">
-        <div class="tasks-head">
-          <h2 id="tasks-heading">Tasks</h2>
-          <span id="todo-summary" class="todo-summary"></span>
+      <header class="notebook-head" data-tauri-drag-region>
+        <h1>To&#8209;Do</h1>
+        <div class="wallet" title="Coins">
+          <span class="coin" aria-hidden="true"></span>
+          <span id="coins">0</span>
         </div>
+      </header>
 
-        <form id="todo-form" class="todo-form">
-          <input
-            id="todo-input"
-            placeholder="What needs doing?"
-            autocomplete="off"
-            aria-label="New task"
-          />
-          <select id="todo-difficulty" aria-label="Difficulty">
-            <option value="easy">Easy</option>
-            <option value="normal" selected>Normal</option>
-            <option value="hard">Hard</option>
-          </select>
-          <button type="submit">Add</button>
-        </form>
+      <main class="pages">
+        <section class="page page-tasks" id="page-tasks" aria-label="Tasks">
+          <h2 class="page-heading">Tasks</h2>
+          <p class="empty" id="empty-tasks">Nothing written here yet.</p>
+        </section>
 
-        <ul id="todo-list" class="todo-list"></ul>
-        <p id="empty-todos" class="empty">
-          No tasks yet. Add one above &mdash; your pet wants XP.
-        </p>
-      </section>
-    </main>
+        <section class="page page-pets" id="page-pets" aria-label="Pets" hidden>
+          <h2 class="page-heading">Pets</h2>
+          <p class="empty" id="empty-pets">No pets yet.</p>
+        </section>
+      </main>
+
+      <footer class="notebook-foot">
+        <button type="button" id="page-toggle" class="page-toggle">Pets</button>
+      </footer>
+    </div>
 
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
   </body>
