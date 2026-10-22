@@ -6,10 +6,18 @@ import {
   deleteTask,
   moveTask,
   normalizeState,
+  pickActivePet,
   reorderTasks,
   toggleTask,
+  unlockPet,
 } from "./game";
-import type { Task } from "./types";
+import { PET_BY_ID } from "./pets";
+import type { AppState, Task } from "./types";
+
+/** A fresh state with a few fields changed, for the pet tests. */
+function stateWith(over: Partial<AppState> = {}): AppState {
+  return { ...createInitialState(), ...over };
+}
 
 /** A task for the tests, without needing a whole state around it. */
 function task(id: string, over: Partial<Task> = {}): Task {
@@ -176,5 +184,104 @@ describe("loading a save", () => {
   it("falls back to a fresh state for rubbish", () => {
     expect(normalizeState(null).coins).toBe(0);
     expect(normalizeState("nope").tasks).toHaveLength(0);
+  });
+});
+
+describe("unlocking a pet", () => {
+  it("refuses when the player cannot afford it", () => {
+    const state = stateWith({ coins: PET_BY_ID.cat.price - 1 });
+
+    const result = unlockPet(state, "cat");
+
+    expect(result.state).toBe(state);
+    expect(result.state.coins).toBe(PET_BY_ID.cat.price - 1);
+    expect(result.state.unlockedPets).toEqual([]);
+    expect(result.event.tone).toBe("bad");
+  });
+
+  it("unlocks the pet and deducts its price", () => {
+    const state = stateWith({ coins: PET_BY_ID.cat.price + 7 });
+
+    const result = unlockPet(state, "cat");
+
+    expect(result.state.coins).toBe(7);
+    expect(result.state.unlockedPets).toEqual(["cat"]);
+    expect(result.event.tone).toBe("good");
+  });
+
+  it("can spend exactly the price", () => {
+    const state = stateWith({ coins: PET_BY_ID.dog.price });
+
+    const result = unlockPet(state, "dog");
+
+    expect(result.state.coins).toBe(0);
+    expect(result.state.unlockedPets).toContain("dog");
+  });
+
+  it("does not charge twice for a pet that is already unlocked", () => {
+    const state = stateWith({ coins: 50, unlockedPets: ["cat"] });
+
+    const result = unlockPet(state, "cat");
+
+    expect(result.state).toBe(state);
+    expect(result.state.coins).toBe(50);
+    expect(result.state.unlockedPets).toEqual(["cat"]);
+    expect(result.event.tone).toBe("info");
+  });
+});
+
+describe("picking the active pet", () => {
+  it("refuses a pet that is still locked", () => {
+    const state = stateWith();
+
+    const result = pickActivePet(state, "cat");
+
+    expect(result.state).toBe(state);
+    expect(result.state.activePetId).toBeNull();
+    expect(result.event.tone).toBe("bad");
+  });
+
+  it("replaces the active pet with another unlocked pet", () => {
+    const state = stateWith({
+      unlockedPets: ["cat", "dog"],
+      activePetId: "cat",
+    });
+
+    const result = pickActivePet(state, "dog");
+
+    expect(result.state.activePetId).toBe("dog");
+    // Picking a new pet does not lock or unlock anything.
+    expect(result.state.unlockedPets).toEqual(["cat", "dog"]);
+    expect(result.event.tone).toBe("good");
+  });
+});
+
+describe("loading saved pets", () => {
+  it("drops pet ids it does not know", () => {
+    const loaded = normalizeState({
+      unlockedPets: ["cat", "unicorn", 7, null],
+      activePetId: "unicorn",
+    });
+
+    expect(loaded.unlockedPets).toEqual(["cat"]);
+    expect(loaded.activePetId).toBeNull();
+  });
+
+  it("clears an active pet that is not unlocked", () => {
+    const loaded = normalizeState({
+      unlockedPets: ["cat"],
+      activePetId: "dog",
+    });
+
+    expect(loaded.activePetId).toBeNull();
+  });
+
+  it("keeps an active pet that is unlocked", () => {
+    const loaded = normalizeState({
+      unlockedPets: ["cat", "dog"],
+      activePetId: "dog",
+    });
+
+    expect(loaded.activePetId).toBe("dog");
   });
 });
