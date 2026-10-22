@@ -22,7 +22,7 @@ The sketch shows a desktop (black), the to-do list window (purple), and a pet (g
 
 - Looks like a **page torn from a notebook**: paper color, ruled lines, torn/perforated top edge.
 - **Borderless** (no OS title bar). Provide a small custom drag area (e.g. the top edge) so it can still be moved.
-- **Resizable and responsive**, max 420x640 px, min 320x420 px. Layout must adapt to the size.
+- **Fixed size** 460x520 px, not resizable.
 - **Ctrl+Q quits the app** (keep it in one place so it's easy to change later).
 - Option to keep the notebook **always on top** (toggle), and an option to **hide** it. Since it's borderless, add a **system tray icon** to show it again, plus Quit.
 - Two pages, switched by a small button in a **bottom corner** of the notebook.
