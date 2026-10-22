@@ -15,6 +15,7 @@ import { bindEvents, render, showToast, type Page, type UiHandlers } from "./ui"
 import type { AppState, PetId } from "./types";
 import { syncPetWindow } from "./petWindow";
 import { applySizes } from "./sizes";
+import { createTray } from "./tray";
 import {
   applyWindowSettings,
   placeBottomRight,
@@ -61,6 +62,9 @@ async function boot(): Promise<void> {
 
   // Window sizes live in sizes.ts; publish them to the stylesheet.
   applySizes();
+
+  // The notebook is always on top only when it was left that way.
+  await getCurrentWindow().setAlwaysOnTop(state.window.alwaysOnTop === true);
 
   // 2. Put the notebook back where the player left it. The first time round
   //    it is parked in the bottom-right corner, just above the taskbar.
@@ -119,6 +123,18 @@ async function boot(): Promise<void> {
   await getCurrentWindow().onCloseRequested((event) => {
     event.preventDefault();
     quitAll();
+  });
+
+  // 6. The tray icon is the way back to a hidden notebook. Its menu also
+  //    toggles always-on-top, which is saved like the window position.
+  await createTray({
+    alwaysOnTop: state.window.alwaysOnTop === true,
+    onAlwaysOnTopChange: (alwaysOnTop) => {
+      state = { ...state, window: { ...state.window, alwaysOnTop } };
+      void saveState(state);
+      void getCurrentWindow().setAlwaysOnTop(alwaysOnTop);
+    },
+    onQuit: quitAll,
   });
 }
 

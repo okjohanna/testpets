@@ -93,6 +93,7 @@ export async function readWindowSettings(): Promise<WindowSettings> {
   return {
     x: Math.round(position.x / scale),
     y: Math.round(position.y / scale),
+    alwaysOnTop: await win.isAlwaysOnTop(),
   };
 }
 

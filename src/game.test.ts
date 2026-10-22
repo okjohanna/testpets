@@ -172,13 +172,27 @@ describe("loading a save", () => {
       window: { x: 40, y: 50, width: 300, height: 400 },
     });
 
-    expect(loaded.window).toEqual({ x: 40, y: 50 });
+    expect(loaded.window).toEqual({ x: 40, y: 50, alwaysOnTop: false });
   });
 
   it("forgets a position that is not a number", () => {
     const loaded = normalizeState({ window: { x: "left", y: 50 } });
 
-    expect(loaded.window).toEqual({ x: null, y: 50 });
+    expect(loaded.window).toEqual({ x: null, y: 50, alwaysOnTop: false });
+  });
+
+  it("keeps the saved always-on-top setting", () => {
+    const loaded = normalizeState({
+      window: { x: 40, y: 50, alwaysOnTop: true },
+    });
+
+    expect(loaded.window.alwaysOnTop).toBe(true);
+  });
+
+  it("starts with always-on-top off", () => {
+    expect(createInitialState().window.alwaysOnTop).toBe(false);
+    expect(normalizeState({}).window.alwaysOnTop).toBe(false);
+    expect(normalizeState({ window: { alwaysOnTop: "yes" } }).window.alwaysOnTop).toBe(false);
   });
 
   it("falls back to a fresh state for rubbish", () => {

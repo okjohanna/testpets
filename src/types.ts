@@ -47,6 +47,8 @@ export interface WindowSettings {
   /** Null until the player has moved the window. */
   x: number | null;
   y: number | null;
+  /** Whether the notebook floats above other windows. Off by default. */
+  alwaysOnTop?: boolean;
 }
 
 /** Everything the app keeps between restarts. */
