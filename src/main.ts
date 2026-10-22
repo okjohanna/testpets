@@ -71,7 +71,7 @@ async function boot(): Promise<void> {
   render(state, page);
   await saveState(state);
 
-  // 4. Remember where the player drags the notebook and how big they make it.
+  // 4. Remember where the player drags the notebook.
   await watchWindow((settings) => {
     state = { ...state, window: settings };
     void saveState(state);

@@ -2,7 +2,6 @@ import {
   currentMonitor,
   getCurrentWindow,
   LogicalPosition,
-  LogicalSize,
   type Monitor,
 } from "@tauri-apps/api/window";
 import type { WindowSettings } from "./types";
@@ -17,9 +16,6 @@ import type { WindowSettings } from "./types";
 
 /** Gap between the notebook and the corner of the screen, in logical pixels. */
 export const CORNER_GAP = 12;
-
-/** The size the notebook starts with. */
-export const DEFAULT_SIZE = { width: 360, height: 520 };
 
 /** A rectangle in desktop coordinates. */
 export interface Box {
@@ -88,56 +84,54 @@ export async function placeBottomRight(): Promise<void> {
   );
 }
 
-/** The current size and position of the window, in logical pixels. */
+/** The current position of the window, in logical pixels. */
 export async function readWindowSettings(): Promise<WindowSettings> {
   const win = getCurrentWindow();
   const scale = await win.scaleFactor();
-
-  const size = await win.outerSize();
   const position = await win.outerPosition();
 
   return {
-    width: Math.round(size.width / scale),
-    height: Math.round(size.height / scale),
     x: Math.round(position.x / scale),
     y: Math.round(position.y / scale),
   };
 }
 
 /**
- * Apply a saved size and position.
+ * Move the notebook back to a saved position.
  *
  * The position is only used when it still lands on a screen - a player who
  * unplugged the monitor should not end up with a notebook in the void.
  */
 export async function applyWindowSettings(settings: WindowSettings): Promise<void> {
-  const win = getCurrentWindow();
-
-  await win.setSize(new LogicalSize(settings.width, settings.height));
-
   if (settings.x === null || settings.y === null) return;
 
+  const win = getCurrentWindow();
   const monitor = await currentMonitor();
   if (!monitor) return;
 
   const scale = monitor.scaleFactor;
   const area = workAreaInDesktopCoords(monitor);
 
+  // The notebook has a fixed size, so use its real size when clamping.
+  const outer = await win.outerSize();
+  const width = outer.width / scale;
+  const height = outer.height / scale;
+
   const left = area.x / scale;
   const top = area.y / scale;
   const right = (area.x + area.width) / scale;
   const bottom = (area.y + area.height) / scale;
 
-  const x = Math.min(Math.max(settings.x, left), Math.max(left, right - settings.width));
-  const y = Math.min(Math.max(settings.y, top), Math.max(top, bottom - settings.height));
+  const x = Math.min(Math.max(settings.x, left), Math.max(left, right - width));
+  const y = Math.min(Math.max(settings.y, top), Math.max(top, bottom - height));
 
   await win.setPosition(new LogicalPosition(Math.round(x), Math.round(y)));
 }
 
 /**
- * Watch the player moving and resizing the window so the new place and size
- * can be saved. Changes arrive in bursts while dragging, so we wait for the
- * dust to settle before reporting.
+ * Watch the player dragging the window so the new place can be saved.
+ * Changes arrive in bursts while dragging, so we wait for the dust to
+ * settle before reporting.
  */
 export async function watchWindow(
   onChange: (settings: WindowSettings) => void,
@@ -153,5 +147,4 @@ export async function watchWindow(
   };
 
   await win.onMoved(report);
-  await win.onResized(report);
 }

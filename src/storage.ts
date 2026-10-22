@@ -33,12 +33,11 @@ export async function loadState(): Promise<AppState | null> {
 
   const version = (raw as { version?: number }).version;
   if (version !== STATE_VERSION) {
-    // An older save (for example the first demo version) cannot be read, so
-    // we start fresh instead of crashing.
+    // Old saves are normalised rather than thrown away, so a player who
+    // updates the app keeps their tasks and coins.
     console.warn(
-      `Saved data is version ${String(version)}, expected ${STATE_VERSION}. Starting fresh.`,
+      `Saved data is version ${String(version)}, expected ${STATE_VERSION}. Migrating.`,
     );
-    return null;
   }
 
   return normalizeState(raw);

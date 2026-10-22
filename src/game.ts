@@ -13,7 +13,7 @@ import type { AppEvent, AppState, PetId, Task } from "./types";
  * Bump this whenever the shape of `AppState` changes. `loadState` then knows
  * the save on disk is from an older version and can migrate or discard it.
  */
-export const STATE_VERSION = 2;
+export const STATE_VERSION = 3;
 
 /** How many coins a finished task is worth. */
 export const COINS_PER_TASK = 5;
@@ -41,7 +41,7 @@ export function createInitialState(): AppState {
     tasks: [],
     unlockedPets: [],
     activePetId: null,
-    window: { width: 360, height: 520, x: null, y: null },
+    window: { x: null, y: null },
   };
 }
 
@@ -88,8 +88,6 @@ export function normalizeState(raw: unknown): AppState {
     unlockedPets,
     activePetId,
     window: {
-      width: isPositiveNumber(win?.width) ? win.width : base.window.width,
-      height: isPositiveNumber(win?.height) ? win.height : base.window.height,
       x: isFiniteNumber(win?.x) ? win.x : null,
       y: isFiniteNumber(win?.y) ? win.y : null,
     },
@@ -124,10 +122,6 @@ function normalizeTask(raw: unknown): Task | null {
 
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value);
-}
-
-function isPositiveNumber(value: unknown): value is number {
-  return isFiniteNumber(value) && value > 0;
 }
 
 /* ------------------------------- tasks ------------------------------ */

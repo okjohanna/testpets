@@ -159,6 +159,20 @@ describe("loading a save", () => {
     expect(loaded.tasks[0].rewarded).toBe(true);
   });
 
+  it("keeps the saved position and drops the old size", () => {
+    const loaded = normalizeState({
+      window: { x: 40, y: 50, width: 300, height: 400 },
+    });
+
+    expect(loaded.window).toEqual({ x: 40, y: 50 });
+  });
+
+  it("forgets a position that is not a number", () => {
+    const loaded = normalizeState({ window: { x: "left", y: 50 } });
+
+    expect(loaded.window).toEqual({ x: null, y: 50 });
+  });
+
   it("falls back to a fresh state for rubbish", () => {
     expect(normalizeState(null).coins).toBe(0);
     expect(normalizeState("nope").tasks).toHaveLength(0);

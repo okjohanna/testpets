@@ -36,11 +36,13 @@ export interface PetDefinition {
   price: number;
 }
 
-/** Where the notebook window was left, so it comes back in the same place. */
+/**
+ * Where the notebook window was left, so it comes back in the same place.
+ *
+ * The notebook has a fixed size, so only its position is stored.
+ */
 export interface WindowSettings {
-  width: number;
-  height: number;
-  /** Null until the user has moved or resized the window. */
+  /** Null until the player has moved the window. */
   x: number | null;
   y: number | null;
 }
