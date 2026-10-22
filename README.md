@@ -1,11 +1,11 @@
 # 🐾 Pet Todo
 
-A todo list where your virtual pets depend on you actually finishing things.
-Complete a task, and your pet gains XP and levels up. Ignore your tasks for
-too long and your pet gets hungry and unhappy.
+An **offline desktop to-do app** that looks like a page torn from a notebook.
+Finish tasks to earn coins, unlock pets, and let the active pet roam your
+desktop while you work.
 
-Built with **Tauri v2** (Rust backend) + **Vite** + **TypeScript** (no
-frontend framework).
+Built with **Tauri 2** (Rust kept minimal), **TypeScript** (vanilla, no UI
+framework), **Vite** and plain HTML/CSS.
 
 ---
 
@@ -24,22 +24,47 @@ Other useful commands:
 | `npm run tauri:build` | Build a release installer (.msi + .exe) |
 | `npm run tauri:add <plugin>` | Add a Tauri plugin, e.g. `npm run tauri:add store` |
 | `npm run build` | Type-check and build just the frontend |
+| `npx vitest run` | Run the unit tests for the game rules |
 | `npm run tauri info` | Check that your toolchain is set up correctly |
 
 > **Note:** `npm tauri ...` does **not** work on npm 7+. You always need the
 > `run` part: `npm run tauri dev`.
 
+The app works fully offline: no CDNs, remote fonts, analytics or updater.
+
 ---
 
-## How to play
+## How it works
 
-- **Add a task** with a difficulty (easy / normal / hard).
-- **Tick it off** to earn XP for your active pet and some coins.
-- **Feed** your pet (5 coins) to fill its hunger meter.
-- **Pet** your pet for free happiness.
-- **Play** with your pet (8 coins) for a big happiness boost.
-- Pets slowly get hungry and unhappy while you are away, based on how long
-  you have been gone. Energy recovers over time.
+### Tasks
+- Add a task, tick it off, untick it, delete it, or drag it to reorder.
+- Finishing a task pays **5 coins, once per task**. Unticking and reticking
+  never pays twice, and coins are never taken back.
+- Long task text wraps so the whole task stays visible.
+
+### Pets
+- The Pets page shows a grid of pets. Locked pets are greyed out and show their
+  price (10 to 100 coins).
+- Click a locked pet to unlock it if you have enough coins.
+- Unlocking does not make a pet active. Pick one of your unlocked pets to make
+  it the active roaming pet; picking another replaces it.
+- The active pet is a small transparent window that roams the desktop, can be
+  dragged, and pauses after you drop it.
+
+### Notebook window
+- The window is borderless and transparent, with paper, ruled lines, a red
+  margin line and a torn top edge.
+- Drag it by the top strip or the header.
+- It starts in the bottom-right corner, just above the taskbar, and remembers
+  its position.
+- Fixed size: 365 x 520, not resizable.
+
+### Tray and shortcuts
+- The tray icon (tooltip "Testpets") has **Show / Hide**, **Always on top**
+  and **Quit**.
+- **Always on top** is saved and restored on startup. It is off by default.
+- **Ctrl+Q** quits the whole app, including pet windows.
+- Closing the notebook window also quits everything.
 
 ---
 
@@ -47,81 +72,69 @@ Other useful commands:
 
 ```
 src/
-  main.ts      Controller. Owns the current state, turns UI events into
-               game actions, saves the result.
-  types.ts     The shapes of everything we store (Pet, Todo, GameState).
-  game.ts      ALL the game rules. Pure functions - no DOM, no Tauri.
-  pets.ts      The catalogue of pet species.
-  storage.ts   Saving and loading. The only file that talks to Tauri.
-  ui.ts        Everything that touches the DOM. Renders state, wires events.
-  styles.css   All the styling.
-
-src-tauri/
-  src/lib.rs   Rust side. Contains the `pet_says` command.
+  main.ts       Controller. Owns the state, handles UI events, saves.
+  game.ts       ALL rules. Pure functions, no DOM, no Tauri. Unit tested.
+  game.test.ts  Vitest tests for game.ts.
+  pets.ts       Pet catalogue (id, name, colour, sprite, price).
+  types.ts      Shapes of everything stored. Bump STATE_VERSION if changed.
+  storage.ts    Load/save via the store plugin (Tauri boundary for data).
+  window.ts     Notebook placement and position saving.
+  ui.ts         All DOM rendering and event wiring.
+  petWindow.ts  Creates/replaces/closes the roaming pet window.
+  pet.ts        Entry point of the roaming pet window (pet.html).
+  tray.ts       System tray icon and its native menu.
+  sizes.ts      Window sizes shared by CSS and code.
+  styles.css    Styling.
 ```
 
-### The three rules that keep this codebase tidy
+### The rules that keep this codebase tidy
 
-1. **`game.ts` is pure.** Every function takes a `GameState` and returns a new
-   one. It never reads the DOM and never calls Tauri. That means the rules can
-   be unit tested without booting the app, and the UI can never accidentally
-   corrupt the game state.
-2. **`storage.ts` is the only Tauri boundary.** If you need a new piece of
-   persisted data, add it here - not scattered through the UI.
-3. **`ui.ts` never changes the game state.** It renders it and reports what
-   the player did; `main.ts` decides what that means.
+1. **`game.ts` is pure.** Every function takes an `AppState` and returns a new
+   one. It never reads the DOM and never calls Tauri, so the rules can be unit
+   tested without booting the app.
+2. **`ui.ts` never changes state.** It renders state and reports what the
+   player did; `main.ts` decides what that means.
+3. **Tauri is kept at the edges.** Only the window, storage, pet-window and
+   tray modules talk to Tauri.
 
 ---
 
-## How the stats work
+## Data
 
-Pets decay based on **wall-clock time**, not on a timer running in the app.
-Each pet stores the timestamp of its last update (`lastTick`), and when the
-app starts we work out how much time passed and apply the difference. This
-means closing the app for three hours has the same effect as leaving it open
-for three hours.
+Everything is saved with `tauri-plugin-store` in the OS app-data folder:
 
-| Stat | Changes | Rate |
-| --- | --- | --- |
-| Hunger | Decreases over time | -1 per 30 min (varies by species) |
-| Happiness | Decreases over time | -1 per 45 min (varies by species) |
-| Energy | Recovers over time | +1 per 20 min |
+```
+%APPDATA%\com.johanna.testpets\pet-todo.json
+```
 
-XP needed for the next level is `50 × current level`, so level 2 needs 100 XP,
-level 3 needs 150 XP, and so on.
+Saved: tasks (order, done, rewarded), coins, unlocked pets, active pet, and
+window settings (position and always-on-top; not size). Loading tolerates old
+or broken saves through `normalizeState`. Delete the file to reset the app.
+
+---
+
+## Art direction
+
+The target look is **retro futuristic pixel art**. Current visuals are
+placeholders (CSS shapes, coloured squares, one dog sprite).
+
+Rules:
+- Assets live in `src/assets/` and are imported from code so Vite bundles them.
+- Pet sprites are one PNG per pet, named after the pet id (`cat.png`).
+- Show pixel art with integer scaling and `image-rendering: pixelated`.
+- Keep the notebook look in as few CSS variables and files as possible.
 
 ---
 
 ## Ideas for contributions
 
-Good first tasks, roughly in order of difficulty:
-
-### 🟢 Easy
-
-- **Real sprite art.** Replace the emoji in `src/pets.ts` with actual images.
-  Put the files in `src/assets/pets/` and import them - `vite/client` types
-  are already set up so `import catSprite from "./assets/pets/cat.png"` works.
-- **More pet lines.** The phrases in `src-tauri/src/lib.rs` (`PET_LINES`) are
-  a fixed list. Add your own, or make the pet respond differently depending
-  on its mood.
-- **Rename the app.** `productName` in `src-tauri/tauri.conf.json` and the
-  `<title>` in `index.html`.
-
-### 🟡 Medium
-
-- **Adopt a second pet.** Add an "Adopt" button that lets the player pick a
-  species and name. You will need to add to `game.ts` and `ui.ts`.
-- **A mood system.** Give each pet a mood based on its stats (happy, hungry,
-  sleepy, bored) and show it as an emoji or a phrase.
-- **Pet shop.** Let players spend coins on a new pet.
-
-### 🔴 Harder
-
-- **Shop items.** Food, toys, and accessories that you can buy and use.
-- **Pet death / neglect.** What happens if a pet stays at zero happiness?
-- **Unit tests for `game.ts`.** Because the rules are pure functions, you can
-  test them with a plain test runner and no browser. This is the best way to
-  learn how to test frontend logic.
+- **More sprites.** Replace the remaining colour squares in `src/pets.ts` with
+  PNGs in `src/assets/pets/`.
+- **Pet animation.** Add simple walk/idle frames to the roaming pet window.
+- **More pets and prices.** Extend `src/pets.ts` and the `PetId` type.
+- **Task difficulty.** Give harder tasks a bigger coin reward.
+- **Better save migration.** Add explicit migrations instead of normalising
+  everything at once.
 
 ---
 
@@ -131,10 +144,5 @@ This project needs Node.js `^20.19` or `>=22.12` (Vite 8), Rust 1.85+ (the
 Rust 2024 edition), the Microsoft C++ Build Tools, and the WebView2 runtime.
 Run `npm run tauri info` to check everything is in place.
 
-Game data is saved by the `tauri-plugin-store` plugin to:
-
-```
-%APPDATA%\com.johanna.testpets\pet-todo.json
-```
-
-Delete that file to reset the game.
+`macOSPrivateApi` is enabled for transparent windows, but macOS is not tested.
+Windows is the primary target.
