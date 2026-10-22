@@ -3,12 +3,14 @@ import {
   createInitialState,
   deleteTask,
   moveTask,
+  pickActivePet,
   toggleTask,
+  unlockPet,
   type StateChange,
 } from "./game";
 import { loadState, saveState } from "./storage";
 import { bindEvents, render, showToast, type Page, type UiHandlers } from "./ui";
-import type { AppState } from "./types";
+import type { AppState, PetId } from "./types";
 import {
   applyWindowSettings,
   placeBottomRight,
@@ -61,6 +63,8 @@ async function boot(): Promise<void> {
       render(state, page);
       void saveState(state);
     },
+    onUnlockPet: (petId: PetId) => run(unlockPet(state, petId)),
+    onPickActivePet: (petId: PetId) => run(pickActivePet(state, petId)),
   };
 
   bindEvents(handlers);

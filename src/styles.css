@@ -277,6 +277,99 @@ input[type="checkbox"] {
   cursor: pointer;
 }
 
+/* ----------------------------- pets --------------------------------- */
+
+.pet-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.pet-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 8px;
+  text-align: center;
+  border-radius: 10px;
+  border: 1px solid var(--paper-shade);
+  background: rgba(255, 255, 255, 0.6);
+  font: inherit;
+  color: var(--ink);
+}
+
+.pet-card:disabled {
+  cursor: default;
+}
+
+.pet-swatch {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background: var(--pet-color);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.pet-name {
+  font-weight: 600;
+  font-size: 13.5px;
+}
+
+.pet-price {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #a2761a;
+}
+
+.pet-price::before {
+  content: "🪙 ";
+}
+
+.pet-card-locked {
+  filter: grayscale(1);
+  opacity: 0.7;
+}
+
+.pet-card-locked:hover {
+  filter: grayscale(0.7);
+  opacity: 1;
+}
+
+.pet-card-unlocked {
+  cursor: pointer;
+}
+
+.pet-card-unlocked:hover {
+  background: var(--accent-soft);
+  border-color: #c9d3ff;
+}
+
+.pet-pick,
+.pet-badge {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.pet-pick {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.pet-badge {
+  color: var(--good);
+  background: #e7f7ef;
+}
+
+.pet-card-active {
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
 /* ----------------------------- footer ------------------------------ */
 
 .notebook-foot {

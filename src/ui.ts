@@ -1,5 +1,6 @@
 import { COINS_PER_TASK } from "./game";
-import type { AppEvent, AppState, Task } from "./types";
+import { PET_CATALOG } from "./pets";
+import type { AppEvent, AppState, PetId, Task } from "./types";
 
 /**
  * Everything that touches the DOM lives here.
@@ -17,6 +18,8 @@ export interface UiHandlers {
   onToggleTask: (taskId: string) => void;
   onDeleteTask: (taskId: string) => void;
   onReorderTask: (draggedId: string, targetId: string) => void;
+  onUnlockPet: (petId: PetId) => void;
+  onPickActivePet: (petId: PetId) => void;
 }
 
 /** The page that is on screen right now. */
@@ -71,6 +74,38 @@ function taskItem(task: Task): string {
     </li>`;
 }
 
+/** One card in the pets grid. */
+function petCard(state: AppState, petId: PetId): string {
+  const pet = PET_CATALOG.find((p) => p.id === petId)!;
+  const unlocked = state.unlockedPets.includes(petId);
+  const active = state.activePetId === petId;
+
+  if (!unlocked) {
+    return `
+      <button type="button" class="pet-card pet-card-locked" data-action="unlock" data-pet-id="${pet.id}" style="--pet-color: ${pet.color}">
+        <span class="pet-swatch" aria-hidden="true"></span>
+        <span class="pet-name">${escapeHtml(pet.name)}</span>
+        <span class="pet-price">${pet.price}</span>
+      </button>`;
+  }
+
+  if (active) {
+    return `
+      <div class="pet-card pet-card-active" data-pet-id="${pet.id}" style="--pet-color: ${pet.color}">
+        <span class="pet-swatch" aria-hidden="true"></span>
+        <span class="pet-name">${escapeHtml(pet.name)}</span>
+        <span class="pet-badge">Active</span>
+      </div>`;
+  }
+
+  return `
+    <button type="button" class="pet-card pet-card-unlocked" data-action="pick" data-pet-id="${pet.id}" style="--pet-color: ${pet.color}">
+      <span class="pet-swatch" aria-hidden="true"></span>
+      <span class="pet-name">${escapeHtml(pet.name)}</span>
+      <span class="pet-pick">Pick</span>
+    </button>`;
+}
+
 /** Draw the whole UI from the given state. */
 export function render(state: AppState, page: Page): void {
   currentPage = page;
@@ -84,6 +119,11 @@ export function render(state: AppState, page: Page): void {
     .map(taskItem)
     .join("");
   mustFind<HTMLElement>("#empty-tasks").hidden = state.tasks.length > 0;
+
+  mustFind<HTMLElement>("#pet-grid").innerHTML = PET_CATALOG.map((pet) =>
+    petCard(state, pet.id),
+  ).join("");
+  mustFind<HTMLElement>("#empty-pets").hidden = PET_CATALOG.length > 0;
 
   const toggle = mustFind<HTMLButtonElement>("#page-toggle");
   const next = otherPage(page);
@@ -127,6 +167,23 @@ export function bindEvents(handlers: UiHandlers): void {
   const toggle = mustFind<HTMLButtonElement>("#page-toggle");
   toggle.addEventListener("click", () => {
     handlers.onPageChange(otherPage(currentPage));
+  });
+
+  const petGrid = mustFind<HTMLElement>("#pet-grid");
+
+  petGrid.addEventListener("click", (event) => {
+    const target = event.target as HTMLElement;
+    const card = target.closest<HTMLElement>("[data-pet-id]");
+    if (!card) return;
+    const petId = card.dataset.petId as PetId;
+
+    if (target.closest("[data-action='unlock']")) {
+      handlers.onUnlockPet(petId);
+      return;
+    }
+    if (target.closest("[data-action='pick']")) {
+      handlers.onPickActivePet(petId);
+    }
   });
 
   const form = mustFind<HTMLFormElement>("#task-form");

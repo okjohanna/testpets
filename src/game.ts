@@ -1,4 +1,5 @@
-import type { AppEvent, AppState, Task } from "./types";
+import { isPetId, PET_BY_ID } from "./pets";
+import type { AppEvent, AppState, PetId, Task } from "./types";
 
 /**
  * All the app rules live here.
@@ -68,6 +69,15 @@ export function normalizeState(raw: unknown): AppState {
     ? data.tasks.map(normalizeTask).filter((task): task is Task => task !== null)
     : [];
 
+  const unlockedPets = Array.isArray(data.unlockedPets)
+    ? data.unlockedPets.filter(isPetId)
+    : [];
+
+  const activePetId =
+    isPetId(data.activePetId) && unlockedPets.includes(data.activePetId)
+      ? data.activePetId
+      : null;
+
   const win = data.window;
 
   return {
@@ -75,6 +85,8 @@ export function normalizeState(raw: unknown): AppState {
     version: STATE_VERSION,
     coins,
     tasks,
+    unlockedPets,
+    activePetId,
     window: {
       width: isPositiveNumber(win?.width) ? win.width : base.window.width,
       height: isPositiveNumber(win?.height) ? win.height : base.window.height,
@@ -237,5 +249,79 @@ export function moveTask(
   return {
     state: { ...state, tasks },
     event: { tone: "info", message: "Task moved." },
+  };
+}
+
+/* ------------------------------- pets ------------------------------- */
+
+/**
+ * Spend coins to unlock a pet.
+ *
+ * A pet can only be unlocked once and only if the player has enough coins.
+ */
+export function unlockPet(state: AppState, petId: PetId): StateChange {
+  const pet = PET_BY_ID[petId];
+  if (!pet) {
+    return { state, event: { tone: "bad", message: "No such pet." } };
+  }
+  if (state.unlockedPets.includes(petId)) {
+    return {
+      state,
+      event: { tone: "info", message: `${pet.name} is already unlocked.` },
+    };
+  }
+  if (state.coins < pet.price) {
+    return {
+      state,
+      event: {
+        tone: "bad",
+        message: `Not enough coins. ${pet.name} costs ${pet.price}.`,
+      },
+    };
+  }
+
+  return {
+    state: {
+      ...state,
+      coins: state.coins - pet.price,
+      unlockedPets: [...state.unlockedPets, petId],
+    },
+    event: {
+      tone: "good",
+      message: `Unlocked ${pet.name}!`,
+    },
+  };
+}
+
+/**
+ * Pick which unlocked pet is the active roaming pet.
+ *
+ * Picking another pet replaces the current one. The pets page only saves the
+ * chosen active pet id - it does not spawn any window.
+ */
+export function pickActivePet(state: AppState, petId: PetId): StateChange {
+  const pet = PET_BY_ID[petId];
+  if (!pet) {
+    return { state, event: { tone: "bad", message: "No such pet." } };
+  }
+  if (!state.unlockedPets.includes(petId)) {
+    return {
+      state,
+      event: {
+        tone: "bad",
+        message: `${pet.name} is locked. Buy it first.`,
+      },
+    };
+  }
+  if (state.activePetId === petId) {
+    return {
+      state,
+      event: { tone: "info", message: `${pet.name} is already roaming.` },
+    };
+  }
+
+  return {
+    state: { ...state, activePetId: petId },
+    event: { tone: "good", message: `${pet.name} is now roaming.` },
   };
 }
