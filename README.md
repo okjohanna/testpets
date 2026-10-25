@@ -1,6 +1,6 @@
 # 🐾 Pet Todo
 
-An **offline desktop to-do app** that looks like a page torn from a notebook.
+An **offline desktop to-do app**.
 Finish tasks to earn coins, unlock pets, and let the active pet roam your
 desktop while you work.
 
@@ -57,7 +57,7 @@ The app works fully offline: no CDNs, remote fonts, analytics or updater.
 - Drag it by the top strip or the header.
 - It starts in the bottom-right corner, just above the taskbar, and remembers
   its position.
-- Fixed size: 365 x 520, not resizable.
+- Fixed size, not resizable.
 
 ### Tray and shortcuts
 - The tray icon (tooltip "Testpets") has **Show / Hide**, **Always on top**
