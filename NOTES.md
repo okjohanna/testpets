@@ -52,6 +52,12 @@
 - Pet drag ending is detected from window movement, not mouseup, because the mouse can leave the window while dragging.
 - The tray is built with the Tauri JS API (`Menu`, `CheckMenuItem`, `PredefinedMenuItem`, `TrayIcon`), not Rust, so all UI stays in TypeScript.
 
+# Session note (overnight run)
+- The branch was `overnight` when the run started, so steps 3-5 were carried out and committed.
+- After server restarts the workspace switched branches (`feature/pet-window`, then `main`) and already contained the later pet-window, tray and Ctrl+Q work.
+- The rule says to stop when the branch is not `overnight`, so no further code changes were made on `main`. Nothing from steps 3-5 is outstanding there.
+- Final checks on the current `main`: `npx tsc --noEmit`, `npx vitest run` (26 tests) and `npm run build` all pass.
+
 # What to test by hand
 - [x] Tray icon appears with the "Testpets" tooltip; left click opens the menu
 - [x] Show / Hide hides the notebook and brings it back focused
