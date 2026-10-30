@@ -1,0 +1,22 @@
+{
+  "permission": {
+    "edit": "allow",
+    "bash": {
+      "*": "ask",
+      "npm run build": "allow",
+      "npx tsc --noEmit": "allow",
+      "npx vitest run*": "allow",
+      "npm test*": "allow",
+      "cargo check*": "allow",
+      "cd src-tauri*": "allow",
+      "git status*": "allow",
+      "git diff*": "allow",
+      "git log*": "allow",
+      "git branch --show-current": "allow",
+      "git show*": "allow",
+      "git add *": "allow",
+      "git commit *": "allow",
+      "git restore *": "allow"
+    }
+  }
+}
