@@ -14,6 +14,7 @@
         <img
           id="gadget-shell"
           class="gadget-shell"
+          src="/src/assets/gadget/Shell.png"
           alt=""
           aria-hidden="true"
           data-tauri-drag-region
@@ -23,6 +24,7 @@
           <img
             id="notebook-background"
             class="notebook-background"
+            src="/src/assets/gadget/Screen.png"
             alt=""
             aria-hidden="true"
           />
@@ -30,7 +32,12 @@
             <header class="notebook-head">
               <h1 id="notebook-title">Tasks</h1>
               <div class="wallet" title="Coins">
-                <span class="coin" aria-hidden="true"></span>
+                <img
+                  class="coin"
+                  src="/src/assets/gadget/leaf.png"
+                  alt=""
+                  aria-hidden="true"
+                />
                 <span id="coins">0</span>
               </div>
             </header>
@@ -49,16 +56,19 @@
 
                 <ul id="task-list" class="task-list"></ul>
                 <p class="empty" id="empty-tasks" hidden>Nothing written yet.</p>
-                <span id="task-page-count" class="task-page-count" aria-live="polite">1 / 1</span>
+                <span id="tasks-page-count" class="page-count" aria-live="polite">1 / 1</span>
               </section>
 
               <section class="page page-shop" id="page-shop" aria-label="Shop" hidden>
-                <p class="page-message">Shop coming soon!</p>
+                <div id="shop-grid" class="pet-grid"></div>
+                <p class="empty" id="empty-shop" hidden>No pets left in the shop.</p>
+                <span id="shop-page-count" class="page-count" aria-live="polite">1 / 1</span>
               </section>
 
               <section class="page page-pets" id="page-pets" aria-label="Pets" hidden>
                 <div id="pet-grid" class="pet-grid"></div>
                 <p class="empty" id="empty-pets" hidden>No pets yet.</p>
+                <span id="pets-page-count" class="page-count" aria-live="polite">1 / 1</span>
               </section>
             </div>
           </div>
@@ -70,33 +80,33 @@
           data-page="shop"
           aria-label="Open shop"
           aria-pressed="false"
-        ><img alt="" aria-hidden="true" /></button>
+        ><img src="/src/assets/gadget/Btn_Shop.png" alt="" aria-hidden="true" /><span class="gadget-button-label" aria-hidden="true">shop</span></button>
         <button
           type="button"
           class="gadget-button button-pets"
           data-page="pets"
           aria-label="Open pets"
           aria-pressed="false"
-        ><img alt="" aria-hidden="true" /></button>
+        ><img src="/src/assets/gadget/Btn_Pets.png" alt="" aria-hidden="true" /><span class="gadget-button-label" aria-hidden="true">pets</span></button>
         <button
           type="button"
           class="gadget-button button-tasks"
           data-page="tasks"
           aria-label="Back to tasks"
           aria-pressed="true"
-        ><img alt="" aria-hidden="true" /></button>
+        ><img src="/src/assets/gadget/Btn_Round.png" alt="" aria-hidden="true" /><span class="gadget-button-icon" aria-hidden="true">T</span></button>
         <button
           type="button"
-          id="next-task-page"
+          id="next-page"
           class="gadget-button button-next"
-          aria-label="Next task page"
-        ><img alt="" aria-hidden="true" /></button>
+          aria-label="Next page"
+        ><img src="/src/assets/gadget/Btn_Aux_Right.png" alt="" aria-hidden="true" /><span class="gadget-button-icon" aria-hidden="true">→</span></button>
         <button
           type="button"
-          id="previous-task-page"
+          id="previous-page"
           class="gadget-button button-previous"
-          aria-label="Previous task page"
-        ><img alt="" aria-hidden="true" /></button>
+          aria-label="Previous page"
+        ><img src="/src/assets/gadget/Btn_Aux_Left.png" alt="" aria-hidden="true" /><span class="gadget-button-icon" aria-hidden="true">←</span></button>
       </div>
     </div>
 

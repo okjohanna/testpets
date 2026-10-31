@@ -20,6 +20,7 @@ import previousButton from "./assets/gadget/Btn_Aux_Left.png";
 export type Page = "tasks" | "shop" | "pets";
 
 const TASKS_PER_PAGE = 4;
+const PETS_PER_PAGE = 6;
 
 export interface UiHandlers {
   onPageChange: (page: Page) => void;
@@ -33,7 +34,8 @@ export interface UiHandlers {
 
 /** The page that is on screen right now. */
 let currentPage: Page = "tasks";
-let taskPageIndex = 0;
+const pageIndices: Record<Page, number> = { tasks: 0, shop: 0, pets: 0 };
+const pageCounts: Record<Page, number> = { tasks: 1, shop: 1, pets: 1 };
 
 /** The task that is being dragged around, if any. */
 let draggedId: string | null = null;
@@ -119,6 +121,15 @@ function petCard(state: AppState, petId: PetId): string {
     </button>`;
 }
 
+function updatePageCount(page: Page, itemCount: number, pageSize: number): number {
+  const pageCount = Math.max(1, Math.ceil(itemCount / pageSize));
+  pageCounts[page] = pageCount;
+  pageIndices[page] = Math.min(pageIndices[page], pageCount - 1);
+  mustFind<HTMLElement>(`#${page}-page-count`).textContent =
+    `${pageIndices[page] + 1} / ${pageCount}`;
+  return pageIndices[page] * pageSize;
+}
+
 /** Draw the whole UI from the given state. */
 export function render(state: AppState, page: Page): void {
   currentPage = page;
@@ -144,30 +155,40 @@ export function render(state: AppState, page: Page): void {
   mustFind<HTMLElement>("#notebook-title").textContent =
     page[0].toUpperCase() + page.slice(1);
 
-  const taskPageCount = Math.max(1, Math.ceil(state.tasks.length / TASKS_PER_PAGE));
-  taskPageIndex = Math.min(taskPageIndex, taskPageCount - 1);
-  const firstTaskIndex = taskPageIndex * TASKS_PER_PAGE;
+  const firstTaskIndex = updatePageCount("tasks", state.tasks.length, TASKS_PER_PAGE);
   mustFind<HTMLElement>("#task-list").innerHTML = state.tasks
     .slice(firstTaskIndex, firstTaskIndex + TASKS_PER_PAGE)
     .map(taskItem)
     .join("");
   mustFind<HTMLElement>("#empty-tasks").hidden = state.tasks.length > 0;
-  mustFind<HTMLElement>("#task-page-count").textContent =
-    `${taskPageIndex + 1} / ${taskPageCount}`;
-  mustFind<HTMLButtonElement>("#previous-task-page").disabled =
-    page !== "tasks" || taskPageIndex === 0;
-  mustFind<HTMLButtonElement>("#next-task-page").disabled =
-    page !== "tasks" || taskPageIndex >= taskPageCount - 1;
 
   document.querySelectorAll<HTMLButtonElement>("[data-page]").forEach((button) => {
     const active = button.dataset.page === page;
     button.setAttribute("aria-pressed", String(active));
   });
 
-  mustFind<HTMLElement>("#pet-grid").innerHTML = PET_CATALOG.map((pet) =>
-    petCard(state, pet.id),
-  ).join("");
-  mustFind<HTMLElement>("#empty-pets").hidden = PET_CATALOG.length > 0;
+  const shopPets = PET_CATALOG.filter((pet) => !state.unlockedPets.includes(pet.id));
+  const firstShopIndex = updatePageCount("shop", shopPets.length, PETS_PER_PAGE);
+  mustFind<HTMLElement>("#shop-grid").innerHTML = shopPets
+    .slice(firstShopIndex, firstShopIndex + PETS_PER_PAGE)
+    .map((pet) => petCard(state, pet.id))
+    .join("");
+  mustFind<HTMLElement>("#empty-shop").hidden = shopPets.length > 0;
+
+  const ownedPets = PET_CATALOG.filter((pet) => state.unlockedPets.includes(pet.id));
+  const firstPetIndex = updatePageCount("pets", ownedPets.length, PETS_PER_PAGE);
+  mustFind<HTMLElement>("#pet-grid").innerHTML = ownedPets
+    .slice(firstPetIndex, firstPetIndex + PETS_PER_PAGE)
+    .map((pet) => petCard(state, pet.id))
+    .join("");
+  mustFind<HTMLElement>("#empty-pets").hidden = ownedPets.length > 0;
+
+  const previousPageButton = mustFind<HTMLButtonElement>("#previous-page");
+  const nextPageButton = mustFind<HTMLButtonElement>("#next-page");
+  previousPageButton.disabled = pageIndices[page] === 0;
+  nextPageButton.disabled = pageIndices[page] >= pageCounts[page] - 1;
+  previousPageButton.setAttribute("aria-label", `Previous ${page} page`);
+  nextPageButton.setAttribute("aria-label", `Next ${page} page`);
 }
 
 let toastTimer: number | undefined;
@@ -212,20 +233,18 @@ export function bindEvents(handlers: UiHandlers): void {
     });
   });
 
-  mustFind<HTMLButtonElement>("#previous-task-page").addEventListener("click", () => {
-    if (currentPage !== "tasks" || taskPageIndex === 0) return;
-    taskPageIndex -= 1;
-    handlers.onPageChange("tasks");
+  mustFind<HTMLButtonElement>("#previous-page").addEventListener("click", () => {
+    if (pageIndices[currentPage] === 0) return;
+    pageIndices[currentPage] -= 1;
+    handlers.onPageChange(currentPage);
   });
-  mustFind<HTMLButtonElement>("#next-task-page").addEventListener("click", () => {
-    if (currentPage !== "tasks") return;
-    taskPageIndex += 1;
-    handlers.onPageChange("tasks");
+  mustFind<HTMLButtonElement>("#next-page").addEventListener("click", () => {
+    if (pageIndices[currentPage] >= pageCounts[currentPage] - 1) return;
+    pageIndices[currentPage] += 1;
+    handlers.onPageChange(currentPage);
   });
 
-  const petGrid = mustFind<HTMLElement>("#pet-grid");
-
-  petGrid.addEventListener("click", (event) => {
+  const handlePetAction = (event: Event): void => {
     const target = event.target as HTMLElement;
     const card = target.closest<HTMLElement>("[data-pet-id]");
     if (!card) return;
@@ -238,7 +257,9 @@ export function bindEvents(handlers: UiHandlers): void {
     if (target.closest("[data-action='pick']")) {
       handlers.onPickActivePet(petId);
     }
-  });
+  };
+  mustFind<HTMLElement>("#shop-grid").addEventListener("click", handlePetAction);
+  mustFind<HTMLElement>("#pet-grid").addEventListener("click", handlePetAction);
 
   const form = mustFind<HTMLFormElement>("#task-form");
   const input = mustFind<HTMLInputElement>("#task-input");
