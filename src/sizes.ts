@@ -10,8 +10,8 @@
  * so the stylesheet never hard-codes a size either.
  */
 
-/** The notebook window: 365 x 520, fixed and not resizable. */
-export const NOTEBOOK_SIZE = { width: 365, height: 520 };
+/** The notebook window: 520 x 560, fixed and not resizable. */
+export const NOTEBOOK_SIZE = { width: 520, height: 560 };
 
 /** The roaming pet window: a small square. */
 export const PET_WINDOW_SIZE = { width: 64, height: 64 };

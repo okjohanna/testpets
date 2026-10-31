@@ -16,8 +16,8 @@
       {
         "label": "main",
         "title": "Testpets",
-        "width": 365,
-        "height": 520,
+        "width": 520,
+        "height": 560,
         "resizable": false,
         "decorations": false,
         "transparent": true,
