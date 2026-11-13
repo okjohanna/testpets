@@ -320,3 +320,28 @@ export function pickActivePet(state: AppState, petId: PetId): StateChange {
     event: { tone: "good", message: `${pet.name} is now roaming.` },
   };
 }
+
+/**
+ * Send the active pet off the desktop.
+ *
+ * A pet is optional: the player may own pets without any of them roaming.
+ * Clicking the active pet card again is how the desktop is cleared. The pet
+ * stays unlocked, so it can be picked again later.
+ */
+export function deactivatePet(state: AppState, petId: PetId): StateChange {
+  const pet = PET_BY_ID[petId];
+  if (!pet) {
+    return { state, event: { tone: "bad", message: "No such pet." } };
+  }
+  if (state.activePetId !== petId) {
+    return {
+      state,
+      event: { tone: "info", message: `${pet.name} is not roaming.` },
+    };
+  }
+
+  return {
+    state: { ...state, activePetId: null },
+    event: { tone: "info", message: `${pet.name} is resting.` },
+  };
+}

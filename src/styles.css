@@ -1,31 +1,15 @@
-/* ------------------------------------------------------------------ *
- * Pet Todo - stylesheet
- *
- * The app is a page torn out of a notebook, so the styling is paper:
- * warm off-white, blue ruled lines, a red margin line and a torn top
- * edge. The window itself is transparent, so the paper is drawn by
- * `.notebook` and everything around it shows the desktop.
- * ------------------------------------------------------------------ */
-
 :root {
-  --paper: #fdf7e6;
-  --paper-shade: #f4ead2;
-  --ink: #33405c;
-  --ink-soft: #77839c;
-  --rule: #cfe0f5;
-  --margin-line: #e8a3a3;
-  --accent: #5b7cfa;
+  --ink: #6d8148;
+  --ink-soft: #869c77;
+  --accent: #6d4859;
   --accent-soft: #e7ecff;
-  --good: #1f9d68;
-  --bad: #d9483f;
-  --coin: #f0b429;
-  --radius: 10px;
+  --good: #959d1f;
+  --bad: #311522;
+  --coin: #aaf029;
   --shadow: 0 10px 30px rgba(20, 24, 40, 0.35);
-  /* Spacing of the ruled lines on the paper. */
-  --line-height: 24px;
-  /* Height of one line of task text. Unitless so it scales with the font. */
-  --task-line-height: 1.3;
 }
+
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
 
 * {
   box-sizing: border-box;
@@ -33,6 +17,7 @@
 
 html,
 body {
+  width: 100%;
   height: 100%;
 }
 
@@ -40,190 +25,194 @@ body {
   margin: 0;
   overflow: hidden;
   background: transparent;
-  font-family: "Segoe UI", Inter, system-ui, -apple-system, sans-serif;
-  font-size: 15px;
-  line-height: var(--line-height);
-  color: var(--ink);
+  color: #cfdfac;
+  text-shadow: 
+    0 0 2px #becaa5,
+    0 0 4px rgba(146, 184, 75, 0.8),
+    0 0 15px rgba(118, 153, 78, 0.308);
+  font-family: "VT323", monospace;
+  font-size: 18px;
+  line-height: 1.3;
+  font-weight: 700;
 }
 
 h1,
 h2,
 h3 {
-  margin: 0;
-  line-height: 1.25;
+  color: #606b49;
+  text-shadow: 
+    0 0 2px #becaa5,
+    0 0 4px rgba(146, 184, 75, 0.8),
+    0 0 15px rgba(118, 153, 78, 0.308);
+  filter: drop-shadow(0 0 8px rgba(195, 212, 159, 0.664));
 }
 
-/* ---------------------------- the page ----------------------------- */
+.gadget {
+  position: relative;
+  width: var(--notebook-width, 450px);
+  height: var(--notebook-height, 500px);
+  
+}
 
-/*
- * The notebook fills its window, which is 365 x 520 and not resizable. The
- * size is published as CSS variables by applySizes() in sizes.ts (Rust creates
- * this window from tauri.conf.json) - the fallbacks here are only a safety net
- * if this file is ever opened on its own.
- */
-.notebook {
-  width: var(--notebook-width, 365px);
-  height: var(--notebook-height, 520px);
+.gadget-art {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  aspect-ratio: 1112 / 1140;
+  transform: translateY(-50%);
+}
+
+.gadget-shell {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+
+}
+
+.notebook-screen {
+  position: absolute;
+  top: 34%;
+  left: 25%;
+  width: 50%;
+  aspect-ratio: 1;
+  overflow: visible;
+  image-rendering: pixelated;
+}
+
+.notebook-background {
+  position: absolute;
+  inset: 0;
+  width: 99%;
+  height: 89%;
+  object-fit: fill;
+  border: 3px solid #c8d675;
+  box-shadow:
+    0 0 5px 2px rgba(200, 214, 117, 0.95),
+    0 0 14px 5px rgba(132, 161, 25, 0.75),
+    0 0 28px 8px rgba(118, 153, 78, 0.5);
+  filter: drop-shadow(0 0 6px rgba(200, 214, 117, 0.9));
+}
+
+.screen-content {
+  position: absolute;
+  top: 6%;
+  left: 10%;
+  width: 61.4%;
+  height: 66.7%;
   display: flex;
   flex-direction: column;
-  background: var(--paper);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  overflow: hidden;
+  min-height: 0;
+  transform: scale(1.3);
+  transform-origin: top left;
 }
-
-/*
- * The torn top edge.
- *
- * A row of half circles is punched out of the top of the page, so the
- * desktop shows through the holes like a page ripped out of a spiral
- * notebook. This strip is also the window's drag handle, so it must stay
- * clickable - never set `pointer-events: none` here.
- */
-.page-edge {
-  flex: none;
-  height: 14px;
-  background: var(--paper);
-  -webkit-mask-image: radial-gradient(
-    circle 6px at 7px 0,
-    transparent 0 5.4px,
-    #000 5.8px
-  );
-  mask-image: radial-gradient(circle 6px at 7px 0, transparent 0 5.4px, #000 5.8px);
-  -webkit-mask-size: 14px 14px;
-  mask-size: 14px 14px;
-  -webkit-mask-repeat: repeat-x;
-  mask-repeat: repeat-x;
-}
-
-/* --------------------------- the heading --------------------------- */
 
 .notebook-head {
   flex: none;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 6px 16px 10px;
-  border-bottom: 1px solid var(--paper-shade);
+  gap: 3px;
+  height: 25px;
+  border-bottom: 1px solid rgba(94, 119, 24, 0.575);
 }
 
 .notebook-head h1 {
-  font-size: 19px;
-  letter-spacing: 0.01em;
+  overflow: hidden;
+  font-size: 13px;
+  padding-top: 1px;
+  text-overflow: ellipsis;
 }
 
 .wallet {
   display: inline-flex;
+  flex: none;
   align-items: center;
-  gap: 7px;
-  padding: 3px 12px 3px 8px;
+  gap: 3px;
+  padding-right: 20px;
+  color: #606b49;
+  font-size: 12px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-  color: #7a5a12;
-  background: #fdf0cf;
-  border: 1px solid #f0d79b;
-  border-radius: 999px;
 }
 
-/* Placeholder coin: a plain circle until we draw a real one. */
 .coin {
   width: 15px;
-  height: 15px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #ffe08a, var(--coin));
-  border: 1px solid #d79f1c;
+  height: 19px;
 }
-
-/* ----------------------------- pages ------------------------------- */
 
 .pages {
   position: relative;
   flex: 1;
   min-height: 0;
+  padding-bottom: 15px;
 }
 
 .page {
   position: absolute;
   inset: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 4px 16px 16px 46px;
-  /* The ruled lines of the paper. */
-  background-image: repeating-linear-gradient(
-    to bottom,
-    transparent 0 calc(var(--line-height) - 1px),
-    var(--rule) calc(var(--line-height) - 1px) var(--line-height)
-  );
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  padding: 5px 1px 0;
 }
 
 .page[hidden] {
   display: none;
 }
 
-/* The red margin line down the left of the page. */
-.page::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 34px;
-  width: 1px;
-  background: var(--margin-line);
-}
-
-.page-heading {
-  position: relative;
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--ink-soft);
-  margin: 4px 0 6px;
-}
-
-/* ----------------------------- tasks ------------------------------- */
-
 .task-form {
   display: flex;
-  gap: 8px;
-  margin: 0 0 10px;
+  flex: none;
+  gap: 2px;
+  margin: 1 0 1px;
 }
 
 .task-form input {
   flex: 1;
   min-width: 0;
+  padding: 1px 1px;
+  border: 0px solid #d8c0c5;
+  background: #d8c0c5;
+  color: #606b49;
+  text-shadow:
+    0 0 2px #cfdfac,
+    0 0 6px rgba(146, 184, 75, 0.95),
+    0 0 14px rgba(118, 153, 78, 0.8);
   font: inherit;
-  padding: 5px 10px;
-  color: var(--ink);
-  background: rgba(255, 255, 255, 0.75);
-  border: 1px solid var(--paper-shade);
-  border-radius: 8px;
+  font-size: 10px;
 }
 
 .task-form input::placeholder {
-  color: var(--ink-soft);
+  color: #606b49;
 }
 
 .task-form button {
-  padding: 5px 12px;
-  font-size: 13.5px;
+  width: 14px;
+  height: 14px;
+  padding: 0;
+  font-size: 13px;
+  line-height: 1;
 }
 
 .task-list {
+  flex: 1;
+  min-height: 0;
+  overflow:auto;
   list-style: none;
-  margin: 0 0 0 -40px;
+  margin: 0;
   padding: 0;
 }
 
-/* Rows start left of the red margin line so the checkbox sits in the margin. */
 .task {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
-  padding: 5px 0;
-  min-height: var(--line-height);
-  border-bottom: 1px solid transparent;
+  gap: 2px;
+  min-height: 23px;
+  padding: 2px 0;
 }
 
 .task.is-dragging {
@@ -231,130 +220,151 @@ h3 {
 }
 
 .task.is-drop-target {
+  border-radius: 3px;
   background: var(--accent-soft);
-  border-radius: 6px;
 }
 
 .task-main {
+  display: flex;
   flex: 1;
   min-width: 0;
-  display: flex;
   align-items: flex-start;
-  gap: 9px;
+  gap: 3px;
   cursor: pointer;
 }
 
-/* Long tasks wrap over several lines instead of being cut off. */
 .task-title {
   flex: 1;
   min-width: 0;
-  line-height: var(--task-line-height);
   overflow-wrap: anywhere;
+  font-size: 9px;
+  line-height: 1.2;
 }
 
 .task.is-done .task-title {
-  text-decoration: line-through;
   color: var(--ink-soft);
+  text-decoration: line-through;
 }
 
 .task-reward {
   flex: none;
-  font-size: 11.5px;
+  color: #84a21a;
+  font-size: 8px;
   font-weight: 600;
-  line-height: var(--task-line-height);
-  color: #a2761a;
 }
 
 .task-delete {
   flex: none;
-  margin-top: -4px;
-  width: 24px;
-  height: 24px;
+  width: 14px;
+  height: 14px;
+  margin: -1px 0 0;
   padding: 0;
-  font-size: 12px;
-  line-height: 1;
-  color: var(--ink-soft);
-  background: transparent;
   border-color: transparent;
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: 9px;
+  line-height: 1;
 }
 
 .task-delete:hover {
-  color: var(--bad);
   background: #fbe6e4;
+  color: var(--bad);
 }
 
 input[type="checkbox"] {
   flex: none;
-  width: 16px;
-  height: 16px;
-  margin-right: 10px;
+  width: 10px;
+  height: 10px;
+  margin: 1px 0 0;
   accent-color: var(--accent);
   cursor: pointer;
 }
 
-/* ----------------------------- pets --------------------------------- */
+.page-count {
+  flex: none;
+  align-self: flex-end;
+  padding-bottom: 20px;
+  font-weight: 600;
+  color: #6d8148;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
 
 .pet-grid {
+  flex: 1;
+  min-height: 0;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 6px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  gap: 3px;
+  overflow: hidden;
 }
 
 .pet-card {
   display: flex;
+  min-width: 0;
+  min-height: 0;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 8px 8px;
-  text-align: center;
-  border-radius: 10px;
-  border: 1px solid var(--paper-shade);
-  background: rgba(255, 255, 255, 0.6);
-  font: inherit;
-  color: var(--ink);
+  gap: 2px;
   overflow: hidden;
+  padding: 3px 1px;
+  border: 1px solid rgba(80, 5, 34, 0.3);
+  border-radius: 4px;
+  background: #d8c0c5;
+  color: var(--ink);
+  font: inherit;
+  text-align: center;
 }
 
 .pet-card:disabled {
   cursor: default;
 }
 
-.pet-swatch {
-  width: 42px;
-  height: 42px;
-  border-radius: 8px;
-  background: var(--pet-color);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-}
-
-/* A real sprite fits inside the same 42x42 slot as the colour square. */
+.pet-swatch,
 .pet-sprite {
   display: block;
-  width: 42px;
-  height: 42px;
-  object-fit: contain;
+  width: 25px;
+  height: 25px;
+  border-radius: 3px;
   image-rendering: pixelated;
 }
 
+.pet-swatch {
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: var(--pet-color);
+}
+
+.pet-sprite {
+  object-fit: contain;
+}
+
 .pet-name {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 8px;
   font-weight: 600;
-  font-size: 13.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pet-price,
+.pet-pick,
+.pet-badge {
+  font-size: 7px;
+  font-weight: 600;
 }
 
 .pet-price {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  font-size: 11.5px;
-  font-weight: 600;
-  color: #a2761a;
+  gap: 2px;
+  color: #5e2d42;
 }
 
-/* The same CSS coin as the header, a little smaller to fit the price. */
 .pet-price .coin {
-  width: 13px;
-  height: 13px;
+  width: 7px;
+  height: 7px;
 }
 
 .pet-card-locked {
@@ -372,70 +382,158 @@ input[type="checkbox"] {
 }
 
 .pet-card-unlocked:hover {
-  background: var(--accent-soft);
   border-color: #c9d3ff;
-}
-
-.pet-pick,
-.pet-badge {
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  padding: 2px 2px;
-  border-radius: 999px;
+  background: var(--accent-soft);
 }
 
 .pet-pick {
   color: var(--accent);
-  background: var(--accent-soft);
 }
 
 .pet-badge {
   color: var(--good);
-  background: #e7f7ef;
 }
 
 .pet-card-active {
+  cursor: pointer;
   box-shadow: 0 0 0 1px var(--accent);
 }
 
-/* ----------------------------- footer ------------------------------ */
-
-.notebook-foot {
-  flex: none;
-  display: flex;
-  justify-content: flex-end;
-  padding: 4px 10px 10px;
+.pet-card-active:hover {
+  border-color: #c9d3ff;
+  background: var(--accent-soft);
 }
 
-.page-toggle {
-  font: inherit;
-  font-size: 12px;
-  font-weight: 600;
+.gadget-button {
+  position: absolute;
+  z-index: 2;
+  display: block;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   cursor: pointer;
-  padding: 4px 12px;
-  color: var(--ink);
-  background: var(--paper-shade);
-  border: 1px solid #e3d5b6;
-  border-radius: 999px;
 }
 
-.page-toggle:hover {
-  background: #efe3c6;
+.gadget-button img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
 }
 
-/* ---------------------------- buttons ------------------------------ */
+.gadget-button-label,
+.gadget-button-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 1;
+  color: #c3d897;
+  text-shadow:
+    0 0 2px #cfdfac,
+    0 0 6px rgba(146, 184, 75, 0.95),
+    0 0 14px rgba(118, 153, 78, 0.8);
+  pointer-events: none;
+}
+
+.gadget-button-label {
+  font-size: 18px;
+  line-height: 1;
+  text-transform: lowercase;
+  white-space: nowrap;
+}
+
+.button-shop .gadget-button-label {
+  transform: translate(-60%, -50%) rotate(-90deg);
+}
+
+.button-pets .gadget-button-label {
+  transform: translate(-40%, -50%) rotate(90deg);
+}
+
+.gadget-button-icon {
+  transform: translate(-50%, -50%);
+  font-family: "Segoe UI Symbol", sans-serif;
+  font-size: 21px;
+  line-height: 1;
+}
+
+.button-previous .gadget-button-icon {
+  transform: translate(-30%, -60%) rotate(14deg);
+  font-size: 25px;
+  font-weight: 700;
+}
+
+.button-next .gadget-button-icon {
+  transform: translate(-70%, -60%) rotate(-14deg);
+  font-size: 25px;
+  font-weight: 700;
+}
+
+.gadget-button:hover {
+  filter: brightness(1.12);
+}
+
+.gadget-button:active {
+  transform: translateY(1px);
+}
+
+.gadget-button:disabled {
+  cursor: default;
+  filter: grayscale(1);
+  opacity: 0.5;
+}
+
+.gadget-button:focus-visible {
+  outline: 2px solid #fff4bb;
+  outline-offset: 2px;
+}
+
+.button-shop {
+  top: 33%;
+  left: 8.1%;
+  width: 16%;
+  height: 46%;
+}
+
+.button-pets {
+  top: 33%;
+  right: 9%;
+  width: 16%;
+  height: 46%;
+}
+
+.button-tasks {
+  top: 84.5%;
+  left: 43.75%;
+  width: 11%;
+  height: 8.5%;
+}
+
+.button-previous {
+  bottom: 12%;
+  left: 27%;
+  width: 14%;
+  height: fit-content;
+}
+
+.button-next {
+  bottom: 12%;
+  left: 56.8%;
+  width: 16.1%;
+  height: 7.2%;
+}
 
 button {
   font: inherit;
   font-weight: 600;
   cursor: pointer;
-  padding: 7px 12px;
-  color: #fff;
-  background: var(--accent);
+  padding: 5px 8px;
   border: 1px solid transparent;
-  border-radius: 9px;
+  border-radius: 5px;
+  background: var(--accent);
+  color: #fff;
   transition: filter 0.15s ease, transform 0.05s ease;
 }
 
@@ -448,18 +546,15 @@ button:active {
 }
 
 button:focus-visible,
-input:focus-visible,
-select:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
+input:focus-visible {
+  outline: 0px dotted #d8c0c5;
+  outline-offset: 0px;
 }
 
-/* ----------------------------- empty ------------------------------- */
-
 .empty {
-  margin: 10px 0 0;
+  margin: 6px 0 0;
   color: var(--ink-soft);
-  font-size: 13.5px;
+  font-size: 9px;
   font-style: italic;
 }
 
@@ -467,30 +562,28 @@ select:focus-visible {
   display: none;
 }
 
-/* ----------------------------- toast ------------------------------- */
-
 .toast {
   position: fixed;
+  bottom: 12px;
   left: 50%;
-  bottom: 44px;
+  max-width: 92%;
+  padding: 7px 12px;
   transform: translate(-50%, 20px);
-  padding: 10px 18px;
   border-radius: 999px;
-  font-size: 13.5px;
-  font-weight: 600;
-  color: #fff;
   background: var(--ink);
   box-shadow: var(--shadow);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.22s ease, transform 0.22s ease;
-  max-width: 92%;
   text-align: center;
+  transition: opacity 0.22s ease, transform 0.22s ease;
 }
 
 .toast.show {
-  opacity: 1;
   transform: translate(-50%, 0);
+  opacity: 1;
 }
 
 .toast.good {
@@ -505,8 +598,6 @@ select:focus-visible {
   background: var(--accent);
 }
 
-/* ---------------------------- errors ------------------------------- */
-
 .startup-error {
   margin: 0;
   padding: 12px 16px;
@@ -515,9 +606,6 @@ select:focus-visible {
   font-size: 13.5px;
 }
 
-/* ----------------------- roaming pet window ------------------------ */
-
-/* The pet window is only the pet, so the page must stay transparent. */
 body.pet-window {
   margin: 0;
   overflow: hidden;
@@ -530,27 +618,22 @@ body.pet-window:active {
   cursor: grabbing;
 }
 
-/*
- * The pet art, sized by --pet-size. That variable is written by applySizes()
- * in sizes.ts, so it always matches the window TypeScript created.
- */
 .pet-avatar {
   width: var(--pet-size, 64px);
   height: var(--pet-size, 64px);
-  border-radius: 14px;
   border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 14px;
   background: var(--pet-color, #f4a261);
   box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.35);
   image-rendering: pixelated;
 }
 
-/* Pets with a sprite show the image instead of a coloured square. */
 .pet-avatar.has-sprite {
+  border-color: transparent;
   background-color: transparent;
   background-image: var(--pet-sprite);
   background-position: center;
   background-repeat: no-repeat;
   background-size: contain;
-  border-color: transparent;
   box-shadow: none;
 }

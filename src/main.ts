@@ -1,6 +1,7 @@
 import {
   addTask,
   createInitialState,
+  deactivatePet,
   deleteTask,
   moveTask,
   pickActivePet,
@@ -94,6 +95,12 @@ async function boot(): Promise<void> {
       const change = pickActivePet(state, petId);
       run(change);
       // Picking another pet replaces the one roaming the desktop.
+      syncRoamingPet(change.state.activePetId);
+    },
+    onDeactivatePet: (petId: PetId) => {
+      const change = deactivatePet(state, petId);
+      run(change);
+      // No active pet means no roaming window.
       syncRoamingPet(change.state.activePetId);
     },
   };
