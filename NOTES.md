@@ -17,6 +17,11 @@
 - Pets grid: locked pets greyed out with price, click to unlock if affordable. Unlocked pets can be picked to be the active roaming pet; picking another replaces it.
 - The pets page only saves the chosen activePetId - the notebook controller spawns and closes the pet window.
 
+## Turning the active pet off
+- Clicking anywhere on the active pet's card in the Pets page sends it off the desktop: activePetId becomes null and the pet window closes.
+- The pet stays unlocked. The card shows "Pick" again and clicking it brings the pet back.
+- No pet has to be active; owning one unlocked pet without activating it is a valid state.
+
 ## Roaming pet window
 - Separate transparent, frameless, always-on-top window, labelled pet-<id>, with no taskbar entry.
 - Walks slowly to random spots inside the work area, pauses, then repeats.
@@ -68,6 +73,9 @@
 - [x] Ctrl+Q and closing the notebook still quit everything
 - [ ] Pet roams by itself, can be dragged, and resumes after a drop
 - [ ] Pick another unlocked pet - old pet window closes and the new one appears
+- [ ] Click the active pet card in Pets - its window closes and the card shows Pick
+- [ ] Click that same pet again - its window comes back
+- [ ] Restart with no active pet - no pet window opens
 - [ ] Add/tick/untick/delete tasks; finish once gives +5 coins and re-ticking gives no more
 - [ ] Drag to reorder tasks and restart - order persists
 - [ ] Locked pets cannot be unlocked without enough coins; unlocked pets persist

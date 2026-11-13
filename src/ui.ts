@@ -30,6 +30,7 @@ export interface UiHandlers {
   onReorderTask: (draggedId: string, targetId: string) => void;
   onUnlockPet: (petId: PetId) => void;
   onPickActivePet: (petId: PetId) => void;
+  onDeactivatePet: (petId: PetId) => void;
 }
 
 /** The page that is on screen right now. */
@@ -106,11 +107,11 @@ function petCard(state: AppState, petId: PetId): string {
 
   if (active) {
     return `
-      <div class="pet-card pet-card-active" data-pet-id="${pet.id}" style="--pet-color: ${pet.color}">
+      <button type="button" class="pet-card pet-card-active" data-action="deactivate" data-pet-id="${pet.id}" style="--pet-color: ${pet.color}" aria-pressed="true" aria-label="${escapeHtml(pet.name)} is active. Click to let it rest." title="Click to let ${escapeHtml(pet.name)} rest">
         ${petArt(pet)}
         <span class="pet-name">${escapeHtml(pet.name)}</span>
         <span class="pet-badge">Active</span>
-      </div>`;
+      </button>`;
   }
 
   return `
@@ -256,6 +257,10 @@ export function bindEvents(handlers: UiHandlers): void {
     }
     if (target.closest("[data-action='pick']")) {
       handlers.onPickActivePet(petId);
+      return;
+    }
+    if (target.closest("[data-action='deactivate']")) {
+      handlers.onDeactivatePet(petId);
     }
   };
   mustFind<HTMLElement>("#shop-grid").addEventListener("click", handlePetAction);

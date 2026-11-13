@@ -395,7 +395,13 @@ input[type="checkbox"] {
 }
 
 .pet-card-active {
+  cursor: pointer;
   box-shadow: 0 0 0 1px var(--accent);
+}
+
+.pet-card-active:hover {
+  border-color: #c9d3ff;
+  background: var(--accent-soft);
 }
 
 .gadget-button {
