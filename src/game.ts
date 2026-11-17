@@ -18,6 +18,9 @@ export const STATE_VERSION = 4;
 /** How many coins a finished task is worth. */
 export const COINS_PER_TASK = 5;
 
+/** Maximum number of tasks on the list. Delete one to make room for another. */
+export const MAX_TASKS = 20;
+
 /** A result: the new state plus a short message for the player. */
 export interface StateChange {
   state: AppState;
@@ -132,6 +135,15 @@ export function addTask(state: AppState, title: string): StateChange {
   const trimmed = title.trim();
   if (trimmed === "") {
     return { state, event: { tone: "bad", message: "Give the task a name." } };
+  }
+  if (state.tasks.length >= MAX_TASKS) {
+    return {
+      state,
+      event: {
+        tone: "bad",
+        message: `Task list is full (${MAX_TASKS}). Delete a task to make room.`,
+      },
+    };
   }
 
   const task: Task = {

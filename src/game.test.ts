@@ -5,6 +5,7 @@ import {
   createInitialState,
   deactivatePet,
   deleteTask,
+  MAX_TASKS,
   moveTask,
   normalizeState,
   pickActivePet,
@@ -99,6 +100,43 @@ describe("tasks", () => {
     const result = deleteTask(state, id);
 
     expect(result.state.tasks).toHaveLength(0);
+  });
+
+  it("refuses a new task when the list is full", () => {
+    const state = stateWith({
+      tasks: Array.from({ length: MAX_TASKS }, (_, index) => task(`task-${index}`)),
+    });
+
+    const result = addTask(state, "One too many");
+
+    expect(result.state).toBe(state);
+    expect(result.state.tasks).toHaveLength(MAX_TASKS);
+    expect(result.event.tone).toBe("bad");
+  });
+
+  it("accepts a task when only one slot is left", () => {
+    const state = stateWith({
+      tasks: Array.from({ length: MAX_TASKS - 1 }, (_, index) => task(`task-${index}`)),
+    });
+
+    const result = addTask(state, "Last slot");
+
+    expect(result.state.tasks).toHaveLength(MAX_TASKS);
+    expect(result.state.tasks[MAX_TASKS - 1].title).toBe("Last slot");
+    expect(result.event.tone).toBe("good");
+  });
+
+  it("accepts a new task after a delete frees a slot", () => {
+    const full = stateWith({
+      tasks: Array.from({ length: MAX_TASKS }, (_, index) => task(`task-${index}`)),
+    });
+    const freed = deleteTask(full, "task-0");
+
+    const result = addTask(freed.state, "Fresh task");
+
+    expect(result.state.tasks).toHaveLength(MAX_TASKS);
+    expect(result.state.tasks.some((t) => t.title === "Fresh task")).toBe(true);
+    expect(result.event.tone).toBe("good");
   });
 
   it("moves a task to the slot of the target task", () => {
