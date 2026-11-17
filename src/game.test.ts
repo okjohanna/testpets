@@ -3,6 +3,7 @@ import {
   addTask,
   COINS_PER_TASK,
   createInitialState,
+  deactivatePet,
   deleteTask,
   moveTask,
   normalizeState,
@@ -267,6 +268,51 @@ describe("picking the active pet", () => {
     // Picking a new pet does not lock or unlock anything.
     expect(result.state.unlockedPets).toEqual(["cat", "dog"]);
     expect(result.event.tone).toBe("good");
+  });
+});
+
+describe("turning the active pet off", () => {
+  it("clears the active pet but keeps it unlocked", () => {
+    const state = stateWith({ unlockedPets: ["cat"], activePetId: "cat" });
+
+    const result = deactivatePet(state, "cat");
+
+    expect(result.state.activePetId).toBeNull();
+    expect(result.state.unlockedPets).toEqual(["cat"]);
+    expect(result.event.tone).toBe("info");
+  });
+
+  it("lets the player pick the same pet again", () => {
+    const state = stateWith({ unlockedPets: ["cat"], activePetId: "cat" });
+
+    const resting = deactivatePet(state, "cat");
+    const roaming = pickActivePet(resting.state, "cat");
+
+    expect(roaming.state.activePetId).toBe("cat");
+  });
+
+  it("does nothing when another pet is active", () => {
+    const state = stateWith({
+      unlockedPets: ["cat", "dog"],
+      activePetId: "cat",
+    });
+
+    const result = deactivatePet(state, "dog");
+
+    expect(result.state).toBe(state);
+    expect(result.state.activePetId).toBe("cat");
+    expect(result.event.tone).toBe("info");
+  });
+
+  it("allows an owned pet to stay inactive", () => {
+    const state = stateWith({ unlockedPets: ["cat"], activePetId: null });
+
+    expect(state.activePetId).toBeNull();
+
+    const result = deactivatePet(state, "cat");
+
+    expect(result.state).toBe(state);
+    expect(result.state.unlockedPets).toEqual(["cat"]);
   });
 });
 

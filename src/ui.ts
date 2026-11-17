@@ -1,6 +1,13 @@
 import { COINS_PER_TASK } from "./game";
 import { PET_CATALOG } from "./pets";
 import type { AppEvent, AppState, PetDefinition, PetId, Task } from "./types";
+import gadgetShell from "./assets/gadget/Shell.png";
+import notebookBackground from "./assets/gadget/Screen.png";
+import shopButton from "./assets/gadget/Btn_Shop.png";
+import petsButton from "./assets/gadget/Btn_Pets.png";
+import tasksButton from "./assets/gadget/Btn_Round.png";
+import nextButton from "./assets/gadget/Btn_Aux_Right.png";
+import previousButton from "./assets/gadget/Btn_Aux_Left.png";
 
 /**
  * Everything that touches the DOM lives here.
@@ -9,8 +16,11 @@ import type { AppEvent, AppState, PetDefinition, PetId, Task } from "./types";
  * current state and this module decides what that looks like.
  */
 
-/** The two pages of the notebook. */
-export type Page = "tasks" | "pets";
+/** The view shown on the notebook screen. */
+export type Page = "tasks" | "shop" | "pets";
+
+const TASKS_PER_PAGE = 4;
+const PETS_PER_PAGE = 6;
 
 export interface UiHandlers {
   onPageChange: (page: Page) => void;
@@ -20,10 +30,13 @@ export interface UiHandlers {
   onReorderTask: (draggedId: string, targetId: string) => void;
   onUnlockPet: (petId: PetId) => void;
   onPickActivePet: (petId: PetId) => void;
+  onDeactivatePet: (petId: PetId) => void;
 }
 
 /** The page that is on screen right now. */
 let currentPage: Page = "tasks";
+const pageIndices: Record<Page, number> = { tasks: 0, shop: 0, pets: 0 };
+const pageCounts: Record<Page, number> = { tasks: 1, shop: 1, pets: 1 };
 
 /** The task that is being dragged around, if any. */
 let draggedId: string | null = null;
@@ -54,11 +67,6 @@ function mustFind<T extends Element>(selector: string): T {
     throw new Error(`Missing required element: ${selector}`);
   }
   return el;
-}
-
-/** The page that is not currently open. */
-export function otherPage(page: Page): Page {
-  return page === "tasks" ? "pets" : "tasks";
 }
 
 /** One line on the to-do page. */
@@ -99,11 +107,11 @@ function petCard(state: AppState, petId: PetId): string {
 
   if (active) {
     return `
-      <div class="pet-card pet-card-active" data-pet-id="${pet.id}" style="--pet-color: ${pet.color}">
+      <button type="button" class="pet-card pet-card-active" data-action="deactivate" data-pet-id="${pet.id}" style="--pet-color: ${pet.color}" aria-pressed="true" aria-label="${escapeHtml(pet.name)} is active. Click to let it rest." title="Click to let ${escapeHtml(pet.name)} rest">
         ${petArt(pet)}
         <span class="pet-name">${escapeHtml(pet.name)}</span>
         <span class="pet-badge">Active</span>
-      </div>`;
+      </button>`;
   }
 
   return `
@@ -114,29 +122,74 @@ function petCard(state: AppState, petId: PetId): string {
     </button>`;
 }
 
+function updatePageCount(page: Page, itemCount: number, pageSize: number): number {
+  const pageCount = Math.max(1, Math.ceil(itemCount / pageSize));
+  pageCounts[page] = pageCount;
+  pageIndices[page] = Math.min(pageIndices[page], pageCount - 1);
+  mustFind<HTMLElement>(`#${page}-page-count`).textContent =
+    `${pageIndices[page] + 1} / ${pageCount}`;
+  return pageIndices[page] * pageSize;
+}
+
 /** Draw the whole UI from the given state. */
 export function render(state: AppState, page: Page): void {
   currentPage = page;
 
+  mustFind<HTMLImageElement>("#gadget-shell").src = gadgetShell;
+  mustFind<HTMLImageElement>("#notebook-background").src = notebookBackground;
+  const buttonImages: Record<string, string> = {
+    ".button-shop img": shopButton,
+    ".button-pets img": petsButton,
+    ".button-tasks img": tasksButton,
+    ".button-next img": nextButton,
+    ".button-previous img": previousButton,
+  };
+  for (const [selector, source] of Object.entries(buttonImages)) {
+    mustFind<HTMLImageElement>(selector).src = source;
+  }
+
   mustFind<HTMLElement>("#coins").textContent = String(state.coins);
 
   mustFind<HTMLElement>("#page-tasks").hidden = page !== "tasks";
+  mustFind<HTMLElement>("#page-shop").hidden = page !== "shop";
   mustFind<HTMLElement>("#page-pets").hidden = page !== "pets";
+  mustFind<HTMLElement>("#notebook-title").textContent =
+    page[0].toUpperCase() + page.slice(1);
 
+  const firstTaskIndex = updatePageCount("tasks", state.tasks.length, TASKS_PER_PAGE);
   mustFind<HTMLElement>("#task-list").innerHTML = state.tasks
+    .slice(firstTaskIndex, firstTaskIndex + TASKS_PER_PAGE)
     .map(taskItem)
     .join("");
   mustFind<HTMLElement>("#empty-tasks").hidden = state.tasks.length > 0;
 
-  mustFind<HTMLElement>("#pet-grid").innerHTML = PET_CATALOG.map((pet) =>
-    petCard(state, pet.id),
-  ).join("");
-  mustFind<HTMLElement>("#empty-pets").hidden = PET_CATALOG.length > 0;
+  document.querySelectorAll<HTMLButtonElement>("[data-page]").forEach((button) => {
+    const active = button.dataset.page === page;
+    button.setAttribute("aria-pressed", String(active));
+  });
 
-  const toggle = mustFind<HTMLButtonElement>("#page-toggle");
-  const next = otherPage(page);
-  toggle.textContent = next === "pets" ? "Pets" : "Tasks";
-  toggle.setAttribute("aria-label", `Switch to the ${next} page`);
+  const shopPets = PET_CATALOG.filter((pet) => !state.unlockedPets.includes(pet.id));
+  const firstShopIndex = updatePageCount("shop", shopPets.length, PETS_PER_PAGE);
+  mustFind<HTMLElement>("#shop-grid").innerHTML = shopPets
+    .slice(firstShopIndex, firstShopIndex + PETS_PER_PAGE)
+    .map((pet) => petCard(state, pet.id))
+    .join("");
+  mustFind<HTMLElement>("#empty-shop").hidden = shopPets.length > 0;
+
+  const ownedPets = PET_CATALOG.filter((pet) => state.unlockedPets.includes(pet.id));
+  const firstPetIndex = updatePageCount("pets", ownedPets.length, PETS_PER_PAGE);
+  mustFind<HTMLElement>("#pet-grid").innerHTML = ownedPets
+    .slice(firstPetIndex, firstPetIndex + PETS_PER_PAGE)
+    .map((pet) => petCard(state, pet.id))
+    .join("");
+  mustFind<HTMLElement>("#empty-pets").hidden = ownedPets.length > 0;
+
+  const previousPageButton = mustFind<HTMLButtonElement>("#previous-page");
+  const nextPageButton = mustFind<HTMLButtonElement>("#next-page");
+  previousPageButton.disabled = pageIndices[page] === 0;
+  nextPageButton.disabled = pageIndices[page] >= pageCounts[page] - 1;
+  previousPageButton.setAttribute("aria-label", `Previous ${page} page`);
+  nextPageButton.setAttribute("aria-label", `Next ${page} page`);
 }
 
 let toastTimer: number | undefined;
@@ -172,14 +225,27 @@ function endDrag(list: HTMLElement): void {
 
 /** Attach the event listeners. Called once at startup. */
 export function bindEvents(handlers: UiHandlers): void {
-  const toggle = mustFind<HTMLButtonElement>("#page-toggle");
-  toggle.addEventListener("click", () => {
-    handlers.onPageChange(otherPage(currentPage));
+  document.querySelectorAll<HTMLButtonElement>("[data-page]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const nextPage = button.dataset.page;
+      if (nextPage === "tasks" || nextPage === "shop" || nextPage === "pets") {
+        handlers.onPageChange(nextPage);
+      }
+    });
   });
 
-  const petGrid = mustFind<HTMLElement>("#pet-grid");
+  mustFind<HTMLButtonElement>("#previous-page").addEventListener("click", () => {
+    if (pageIndices[currentPage] === 0) return;
+    pageIndices[currentPage] -= 1;
+    handlers.onPageChange(currentPage);
+  });
+  mustFind<HTMLButtonElement>("#next-page").addEventListener("click", () => {
+    if (pageIndices[currentPage] >= pageCounts[currentPage] - 1) return;
+    pageIndices[currentPage] += 1;
+    handlers.onPageChange(currentPage);
+  });
 
-  petGrid.addEventListener("click", (event) => {
+  const handlePetAction = (event: Event): void => {
     const target = event.target as HTMLElement;
     const card = target.closest<HTMLElement>("[data-pet-id]");
     if (!card) return;
@@ -191,8 +257,14 @@ export function bindEvents(handlers: UiHandlers): void {
     }
     if (target.closest("[data-action='pick']")) {
       handlers.onPickActivePet(petId);
+      return;
     }
-  });
+    if (target.closest("[data-action='deactivate']")) {
+      handlers.onDeactivatePet(petId);
+    }
+  };
+  mustFind<HTMLElement>("#shop-grid").addEventListener("click", handlePetAction);
+  mustFind<HTMLElement>("#pet-grid").addEventListener("click", handlePetAction);
 
   const form = mustFind<HTMLFormElement>("#task-form");
   const input = mustFind<HTMLInputElement>("#task-input");
